@@ -3,3 +3,9 @@
 
 [functions]
   directory = "netlify/functions"
+
+# Se a rota /api/ai não for reconhecida, o pedido segue para o endereço padrão da função.
+[[redirects]]
+  from = "/api/ai"
+  to = "/.netlify/functions/ai"
+  status = 200
