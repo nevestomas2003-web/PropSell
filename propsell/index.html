@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PropSell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: coluna de telemóvel centrada; cabeçalho, conteúdo com scroll, navegação inferior. */
+:root{
+  --bg:#EEF2F5; --surface:#FFFFFF; --ink:#13253A; --muted:#566779; --line:#D8E0E7;
+  --accent:#0B7C86; --accent-ink:#FFFFFF; --accent-soft:#DDF1F3;
+  --ok:#1C7C47; --ok-soft:#DFF3E7; --warn:#9A5B00; --warn-soft:#FBEBCF; --bad:#B3321F; --bad-soft:#FBE3DE; --neutral-soft:#E8EDF1;
+  --font-display:'Sora',system-ui,sans-serif; --font-body:'Nunito Sans',system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0D1620; --surface:#16222E; --ink:#E7EEF4; --muted:#9BABBA; --line:#263646;
+  --accent:#43B9C4; --accent-ink:#06222A; --accent-soft:#123A41;
+  --ok:#59C98A; --ok-soft:#143524; --warn:#F0B35A; --warn-soft:#3B2A0F; --bad:#F08A78; --bad-soft:#3E1C16; --neutral-soft:#1F2D3A; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0D1620; --surface:#16222E; --ink:#E7EEF4; --muted:#9BABBA; --line:#263646;
+  --accent:#43B9C4; --accent-ink:#06222A; --accent-soft:#123A41;
+  --ok:#59C98A; --ok-soft:#143524; --warn:#F0B35A; --warn-soft:#3B2A0F; --bad:#F08A78; --bad-soft:#3E1C16; --neutral-soft:#1F2D3A; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+#shell{height:100%;max-width:440px;margin:0 auto;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+@media (min-width:600px){body{padding:16px 0}#shell{height:calc(100% );border:1px solid var(--line);border-radius:28px;box-shadow:0 12px 40px rgba(10,30,50,.18)}}
+header.bar{display:flex;align-items:center;gap:8px;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:var(--surface);border-bottom:1px solid var(--line);min-height:56px}
+header.bar h1{font-family:var(--font-display);font-size:18px;margin:0;flex:1;line-height:1.2;font-weight:600}
+header.bar .sub{font-size:13px;color:var(--muted);font-weight:400;display:block;margin-top:2px;font-family:var(--font-body)}
+main#main{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch}
+nav.tabs{display:flex;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs button{flex:1;border:0;background:none;color:var(--muted);padding:10px 4px;font:600 13px var(--font-body);display:flex;flex-direction:column;align-items:center;gap:3px;min-height:56px;cursor:pointer}
+nav.tabs button[aria-current="page"]{color:var(--accent)}
+nav.tabs svg{width:22px;height:22px}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:12px 16px;border-radius:12px;font-weight:700;cursor:pointer;min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.small{min-height:40px;padding:8px 12px;font-size:14px;border-radius:10px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn.block{width:100%}
+.icon-btn{border:0;background:none;color:var(--ink);width:44px;height:44px;border-radius:12px;display:grid;place-items:center;cursor:pointer}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.card h2{font-family:var(--font-display);font-size:15px;margin:0;font-weight:600}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:14px}
+.field input[type=text],.field textarea,.field select{border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:12px;width:100%;min-height:48px}
+.field textarea{min-height:110px;resize:vertical}
+.field.invalid input,.field.invalid textarea,.field.invalid select{border-color:var(--bad)}
+.err{color:var(--bad);font-size:14px;font-weight:600}
+.hint{color:var(--muted);font-size:13px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;background:var(--neutral-soft);color:var(--ink)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.bad{background:var(--bad-soft);color:var(--bad)}
+.chip.acc{background:var(--accent-soft);color:var(--accent)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row.spread{justify-content:space-between}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.thumb{position:relative;aspect-ratio:4/3;border-radius:10px;overflow:hidden;background:var(--neutral-soft)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb button{position:absolute;top:4px;right:4px;width:32px;height:32px;border-radius:999px;border:0;background:rgba(0,0,0,.65);color:#fff;font-size:18px;cursor:pointer;line-height:1}
+.steps{display:flex;gap:6px}
+.steps button{flex:1;border:1.5px solid var(--line);background:var(--surface);color:var(--muted);border-radius:12px;padding:8px 4px;font:700 13px var(--font-body);min-height:44px;cursor:pointer}
+.steps button[aria-current="step"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.ad-card{display:flex;gap:12px;cursor:pointer;text-align:left;width:100%;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px;color:var(--ink)}
+.ad-card .pic{width:76px;height:76px;border-radius:12px;background:var(--neutral-soft);flex:none;overflow:hidden;display:grid;place-items:center;color:var(--muted);font-size:12px}
+.ad-card .pic img{width:100%;height:100%;object-fit:cover}
+.ad-card .t{font-weight:700;font-family:var(--font-display);font-size:15px;line-height:1.25}
+.ad-card .meta{font-size:13px;color:var(--muted)}
+.empty{text-align:center;padding:36px 16px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.empty h2{font-family:var(--font-display);margin:0}
+.banner{border-radius:12px;padding:10px 12px;font-size:14px;font-weight:600;display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.banner.warn{background:var(--warn-soft);color:var(--warn)}
+.banner.bad{background:var(--bad-soft);color:var(--bad)}
+.banner.ok{background:var(--ok-soft);color:var(--ok)}
+.banner.info{background:var(--accent-soft);color:var(--accent)}
+.banner button.x{border:0;background:none;color:inherit;font-weight:700;cursor:pointer;min-height:32px;padding:0 6px}
+.feat{border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.feat .nm{font-weight:700}
+.feat.rej{opacity:.6}
+.bar-conf{height:6px;border-radius:6px;background:var(--neutral-soft);overflow:hidden}
+.bar-conf i{display:block;height:100%;background:var(--accent)}
+.disc{border:1px solid var(--warn);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.disc.done{border-color:var(--line);opacity:.8}
+.disc del{color:var(--bad)} .disc ins{color:var(--ok);text-decoration:none;font-weight:700}
+.overlay{position:absolute;inset:0;background:rgba(10,20,30,.55);display:grid;place-items:center;z-index:20;padding:20px}
+.dialog{background:var(--surface);border-radius:18px;padding:18px;max-width:360px;width:100%;display:flex;flex-direction:column;gap:12px}
+.dialog h3{margin:0;font-family:var(--font-display);font-size:17px}
+.spinner{width:34px;height:34px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--accent);animation:sp 0.9s linear infinite;margin:0 auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spinner{animation-duration:3s}}
+#toasts{position:absolute;left:12px;right:12px;bottom:76px;display:flex;flex-direction:column;gap:8px;z-index:30;pointer-events:none}
+.toast{background:var(--ink);color:var(--bg);padding:12px 14px;border-radius:12px;font-weight:600;font-size:14px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.fab{position:absolute;right:16px;bottom:78px;z-index:10;box-shadow:0 8px 20px rgba(11,124,134,.35);border-radius:16px}
+.preview{border:1px dashed var(--line);border-radius:12px;padding:12px;background:var(--bg);white-space:pre-wrap;font-size:14px;max-height:220px;overflow:auto}
+.log{font-size:13px;border-bottom:1px solid var(--line);padding:6px 0;display:flex;flex-direction:column;gap:2px}
+.test-row{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.checkline{display:flex;gap:10px;align-items:flex-start;font-weight:600}
+.checkline input{width:22px;height:22px;margin-top:2px;flex:none}
+audio{width:100%}
+</style>
+</head>
+<body>
+<div id="shell">
+  <div id="root" style="display:flex;flex-direction:column;height:100%"></div>
+  <div id="toasts" aria-live="polite"></div>
+  <div id="overlay-host"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+/* Ligação à IA fora do claude.ai: se window.claude não existir, usa o backend /api/ai.
+   Mantém a mesma interface (use('sample') -> s(prompt), s.json(prompt, {images, signal}), s.limits()). */
+(function(){
+  if (window.claude) return;
+  const MAXSIDE = 1024, QUALITY = 0.72;
+  async function toPart(blob){
+    const url = URL.createObjectURL(blob);
+    try {
+      const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('imagem')); i.src = url; });
+      const k = Math.min(1, MAXSIDE / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.naturalWidth*k)); c.height = Math.max(1, Math.round(img.naturalHeight*k));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      return { media_type: 'image/jpeg', data: c.toDataURL('image/jpeg', QUALITY).split(',')[1] };
+    } finally { URL.revokeObjectURL(url); }
+  }
+  async function call(prompt, opts, asJson){
+    opts = opts || {};
+    const images = opts.images && opts.images.length ? await Promise.all(opts.images.map(toPart)) : [];
+    let r;
+    try {
+      r = await fetch('/api/ai', { method:'POST', headers:{'content-type':'application/json'}, signal: opts.signal, body: JSON.stringify({ prompt, images, json: !!asJson }) });
+    } catch(e){ if (e && e.name === 'AbortError') throw e; const err = new Error('rede'); err.code = 'network'; throw err; }
+    let d = null; try { d = await r.json(); } catch(e){}
+    if (!r.ok){ const err = new Error((d && d.message) || ('erro ' + r.status)); err.code = r.status === 429 ? 'rate_limited' : (r.status === 503 ? 'not_granted' : 'network'); throw err; }
+    return d.text;
+  }
+  const s = (prompt, opts) => call(prompt, opts, false);
+  s.json = async (prompt, opts) => { const t = await call(prompt, opts, true); return JSON.parse(String(t).trim().replace(/^```(?:json)?/i,'').replace(/```$/,'').trim()); };
+  s.limits = async () => ({ images: true });
+  window.claude = { use: async (name) => name === 'sample' ? s : null };
+})();
+</script>
+<script>
+'use strict';
+/* =====================================================================
+   PropSell — protótipo funcional (app móvel). Português de Portugal.
+   Estrutura: utilitários → regras (funções puras) → armazenamento → IA → ecrãs → testes.
+   ===================================================================== */
+
+/* ---------- Utilitários ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
+const nowISO = () => new Date().toISOString();
+const fmtDate = iso => { try { return new Date(iso).toLocaleString('pt-PT',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); } catch(e){ return iso; } };
+const fmtMB = b => (b/1048576).toLocaleString('pt-PT',{minimumFractionDigits:1,maximumFractionDigits:1});
+const fmtDur = s => { const m=Math.floor(s/60), r=Math.round(s%60); return m ? `${m} min ${String(r).padStart(2,'0')} s` : `${r} s`; };
+const fmtEUR = n => Number(n).toLocaleString('pt-PT',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+const MAX_FOTOS = 20, MIN_W = 800, MIN_H = 600, MAX_AUDIO_S = 300, MAX_AUDIO_BYTES = 30*1048576, AUDIO_OK = ['MP3','M4A','WAV','OGG'], LIMIAR = 75, TIMEOUT_MS = 15000;
+const STG_MAX_DECORADAS = 20, STG_MAX_TENT = 10, STG_LABEL = 'Imagem decorada virtualmente', STG_ESTILOS = ['Moderno','Clássico','Minimalista'];
+const CANAIS = [
+  {id:'idealista', nome:'Idealista', tipo:'portal'},
+  {id:'imovirtual', nome:'Imovirtual', tipo:'portal'},
+  {id:'instagram', nome:'Instagram', tipo:'rede'},
+  {id:'facebook', nome:'Facebook', tipo:'rede'},
+  {id:'pdf', nome:'PDF (dossiê comercial)', tipo:'pdf'}
+];
+
+/* ---------- Regras de negócio (funções puras, também usadas pela verificação) ---------- */
+function parseArea(v){ const n = parseFloat(String(v ?? '').replace(',','.').trim()); return Number.isFinite(n) ? n : NaN; }
+// RN02 / CA01
+function validateForm(f){
+  const e = {};
+  if (!String(f.tipologia ?? '').trim()) e.tipologia = 'Indique a tipologia (por exemplo, T2).';
+  if (!String(f.localizacao ?? '').trim()) e.localizacao = 'Indique a localização (concelho ou freguesia).';
+  const a = parseArea(f.area);
+  if (!String(f.area ?? '').trim()) e.area = 'Indique a área em m².';
+  else if (!(a > 0)) e.area = 'A área tem de ser um número maior que zero.';
+  return e;
+}
+// RN03 — fotografias. info = {formato, bytes, w, h}
+function imageProblem(info){
+  if (!['JPEG','PNG','HEIC'].includes(info.formato)) {
+    if (info.formato === 'DESCONHECIDO') return 'O ficheiro não é uma imagem válida.';
+    return `Formato não aceite (${info.formato}). Use JPEG ou PNG.`;
+  }
+  if (info.w < MIN_W || info.h < MIN_H) return `Resolução demasiado baixa (${info.w}×${info.h}). Mínimo: ${MIN_W}×${MIN_H} px.`;
+  return null;
+}
+// RN03 — áudio. info = {formato, dur}
+function audioProblem(info){
+  if (!AUDIO_OK.includes(info.formato)) return info.formato === 'DESCONHECIDO' ? 'O ficheiro não é um áudio válido. Use MP3, M4A, WAV ou OGG.' : `Formato de áudio não aceite (${info.formato}). Use MP3, M4A, WAV ou OGG.`;
+  if (info.bytes > MAX_AUDIO_BYTES) return `Ficheiro de áudio demasiado grande (${fmtMB(info.bytes)} MB). Máximo: 30 MB.`;
+  if (info.dur > MAX_AUDIO_S + 0.5) return `Áudio demasiado longo (${fmtDur(info.dur)}). Máximo: 5 minutos.`;
+  return null;
+}
+// RN04
+const visibleFeatures = list => list.filter(f => f.confianca >= LIMIAR);
+// RN05
+const approved = ad => (ad.caracteristicas||[]).filter(c => c.decisao === 'aprovada');
+// Palavras-chave de características físicas (modo local e verificação)
+const KEYWORDS = [
+  ['varanda', /varand/i], ['terraço', /terra[cç]o/i], ['piscina', /piscin/i], ['garagem', /garag|estacionamento/i],
+  ['elevador', /elevador/i], ['jardim', /jardim/i], ['lareira', /lareira/i], ['ar condicionado', /ar condicionado/i],
+  ['cozinha equipada', /cozinha (totalmente |toda |completamente )?equipada/i], ['piso em madeira', /piso (em )?madeira|parquet|soalho/i],
+  ['roupeiro', /roupeiro|closet/i], ['luz natural', /luz natural|luminos|muita luz|bem iluminad/i], ['arrecadação', /arrecada[cç]/i],
+  ['mobilado', /mobilad/i], ['base de duche', /duche/i], ['sala ampla', /sala (ampla|espa[cç]osa)/i], ['vista desafogada', /vista (desafogada|mar|rio)/i]
+];
+// Modo local — geração por modelo de texto (RN05: só dados existentes)
+function localGenerate(ad){
+  const tip = String(ad.tipologia||'').trim(), area = parseArea(ad.area);
+  const feats = approved(ad).map(c => c.nome);
+  const loc = String(ad.localizacao||'').trim();
+  let titulo = `Apartamento ${tip} com ${area.toLocaleString('pt-PT')} m²${loc?` em ${loc}`:''}`;
+  if (feats.length) titulo += ` — ${feats.slice(0,2).join(' e ')}`;
+  titulo = titulo.slice(0,90);
+  let d = `Apartamento ${tip} com ${area.toLocaleString('pt-PT')} m² de área${loc?`, localizado em ${loc}`:''}.`;
+  if (feats.length) d += ` Características: ${feats.join(', ')}.`;
+  const notas = String(ad.notas||'').trim();
+  if (notas) d += `\n\n${notas}`;
+  if (!ad.fotos.length) d += `\n\nAnúncio sem fotografias.`;
+  return { titulo, descricao: d };
+}
+// Modo local — coerência por palavras-chave
+function localCoherence(ad){
+  const texto = `${ad.titulo||''}\n${ad.descricao||''}`;
+  const notas = ad.notas||'';
+  const feats = approved(ad).map(c => c.nome).join(' | ');
+  const out = [];
+  for (const [nome, re] of KEYWORDS){
+    const m = texto.match(re) || notas.match(re);
+    if (m && !re.test(feats)) out.push({ id: uid(), afirmacao: nome, motivo: `A afirmação «${nome}» não tem suporte nas características validadas a partir das fotografias.`, trecho: (texto.match(re)||[''])[0], trechoNotas: (notas.match(re)||[''])[0], sugestao: '', decisao: null });
+  }
+  return out;
+}
+// Estado da coerência (RN06)
+function coherenceOf(ad){
+  if (!ad.fotos.length) return 'Não aplicável';
+  if (approved(ad).length === 0) return 'Pendente';
+  if ((ad.discrepancias||[]).some(d => !d.decisao)) return 'Pendente';
+  if (ad.coerenciaVerificada === false || ad.coerenciaVerificada == null) return 'Pendente';
+  return 'Validada';
+}
+// Em falta para Concluído (RN07)
+function missingForConcluido(ad){
+  const m = [];
+  if (!String(ad.titulo||'').trim()) m.push('título');
+  if (!String(ad.descricao||'').trim()) m.push('descrição');
+  if (!(parseArea(ad.preco) > 0)) m.push('preço');
+  if (!String(ad.tipologia||'').trim()) m.push('tipologia');
+  if (!(parseArea(ad.area) > 0)) m.push('área');
+  if (!String(ad.localizacao||'').trim()) m.push('localização');
+  if (!ad.revisado) m.push('confirmação «Revi o anúncio»');
+  const c = coherenceOf(ad);
+  if (c === 'Não aplicável') m.push('fotografias (sem elas a coerência não se aplica e o anúncio não pode ser exportado)');
+  else if (c !== 'Validada') m.push('coerência validada');
+  return m;
+}
+function genSig(ad){ return (ad.fotos||[]).map(f=>f.id).join(',') + '|' + approved(ad).map(c=>c.nome).sort().join(','); }
+function computeEstado(ad){ return missingForConcluido(ad).length ? 'Rascunho' : 'Concluído'; }
+// FA5 — aceitar a nova versão: substitui o(s) campo(s) escolhido(s), devolve a Rascunho e exige nova confirmação
+function applyRegeneracao(ad, nova, alvo){
+  ad.versaoAnterior = { titulo: ad.titulo, descricao: ad.descricao, discrepancias: JSON.parse(JSON.stringify(ad.discrepancias||[])), coerenciaVerificada: ad.coerenciaVerificada, sigGeracao: ad.sigGeracao };
+  if (alvo.titulo) ad.titulo = nova.titulo;
+  if (alvo.descricao) ad.descricao = nova.descricao;
+  ad.discrepancias = nova.discrepancias || []; ad.coerenciaVerificada = true; ad.revisado = false;
+  ad.estado = computeEstado(ad); ad.sigGeracao = genSig(ad);
+}
+// RN09 — qualquer edição repete a coerência e exige nova confirmação
+function markEdited(ad){
+  ad.revisado = false; ad.coerenciaVerificada = false;
+  ad.estado = computeEstado(ad);
+}
+// RN10 — pré-requisitos de exportação
+function exportBlockers(ad, canaisSel, legal){
+  const b = [];
+  if (ad.estado !== 'Concluído' && ad.estado !== 'Publicado') b.push('O anúncio tem de estar Concluído.');
+  if (coherenceOf(ad) === 'Pendente') b.push('A coerência está Pendente. Resolva as discrepâncias na etapa Proposta.');
+  if (!canaisSel.length) b.push('Escolha pelo menos um canal.');
+  const temPortal = canaisSel.some(id => CANAIS.find(c=>c.id===id)?.tipo === 'portal');
+  const temRede = canaisSel.some(id => CANAIS.find(c=>c.id===id)?.tipo === 'rede');
+  if (temPortal){
+    if (!(parseArea(ad.preco) > 0)) b.push('Em falta: preço.');
+    if (!String(ad.tipologia||'').trim()) b.push('Em falta: tipologia.');
+    if (!(parseArea(ad.area) > 0)) b.push('Em falta: área.');
+    if (!String(ad.localizacao||'').trim()) b.push('Em falta: localização.');
+    if (!String(legal?.certificado||'').trim()) b.push('Em falta: certificado energético.');
+    if (!legal?.isento && !String(legal?.licenca||'').trim()) b.push('Em falta: licença de utilização (ou marque «isento»).');
+  }
+  if ((temPortal || temRede) && ad.fotos.length < 1) b.push('Em falta: pelo menos uma fotografia válida.');
+  return b;
+}
+// RN07/RN11 — estado após confirmação por canal
+function estadoAposCanais(ad){
+  const conf = ad.canaisConfirmados || {};
+  const algum = CANAIS.some(c => c.tipo !== 'pdf' && conf[c.id]);
+  return algum ? 'Publicado' : computeEstado(ad);
+}
+// RN12 — resultado de uma falha da IA (pura, testável)
+function failureOutcome(ad, kind){
+  const msg = kind==='timeout' ? 'A IA demorou demasiado.' : kind==='rede' ? 'Falha ao contactar o servidor.' : kind==='invalida' ? 'A IA devolveu uma resposta inválida.' : 'A IA não está disponível neste ambiente.';
+  return { estado:'Rascunho', mensagem:msg, opcoes:['Escrever manualmente','Tentar de novo'], dadosPerdidos:false };
+}
+// Privacidade: substituir moradas exatas por referência genérica
+const ADDR_RE = /\b(rua|avenida|av\.|travessa|largo|pra[cç]a|estrada|alameda|cal[cç]ada|beco)\s+([A-Za-zÀ-ÿ'’.\-]+\s*){1,4}(,?\s*(n\.?º|n°|número|nº)?\s*\d+[A-Za-z]?)?(\s*,?\s*\d+\.?[ºª]?\s*(esq\.?|dto\.?|esquerdo|direito|andar)?)?/gi;
+function sanitizeNotes(t){ const out = String(t||'').replace(ADDR_RE, '[zona omitida]'); return { texto: out, alterado: out !== String(t||'') }; }
+
+/* ---------- Estado e armazenamento ---------- */
+let S = { ads: [], logs: [], aiConsent: false };
+let V = { name: 'list', adId: null, step: 1, exp: null, tab: 'list' };
+let storageOK = true, saveTimer = null;
+const DB = { db: null,
+  open(){ return new Promise((res, rej) => { try { const r = indexedDB.open('propsell', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => { this.db = r.result; res(); }; r.onerror = () => rej(r.error); } catch(e){ rej(e); } }); },
+  get(){ return new Promise((res, rej) => { const t = this.db.transaction('kv').objectStore('kv').get('state'); t.onsuccess = () => res(t.result); t.onerror = () => rej(t.error); }); },
+  put(v){ return new Promise((res, rej) => { const t = this.db.transaction('kv','readwrite').objectStore('kv').put(v,'state'); t.onsuccess = () => res(); t.onerror = () => rej(t.error); }); }
+};
+async function loadState(){
+  try { await DB.open(); const v = await DB.get(); if (v) S = Object.assign(S, v); return; } catch(e){}
+  try { const raw = localStorage.getItem('propsell'); if (raw) S = Object.assign(S, JSON.parse(raw)); return; } catch(e){}
+  storageOK = false;
+}
+function saveSoon(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try { if (DB.db) { await DB.put(S); return; } } catch(e){}
+    try { localStorage.setItem('propsell', JSON.stringify(S)); } catch(e){ storageOK = false; }
+  }, 350);
+}
+const getAd = id => S.ads.find(a => a.id === id);
+const curAd = () => getAd(V.adId);
+function newAd(){
+  return { id: uid(), criado: nowISO(), atualizado: nowISO(), tipologia:'', localizacao:'', area:'', notas:'', audio:null, fotos:[], caracteristicas:[], ocultas:0,
+    titulo:'', descricao:'', preco:'', precoNota:'', revisado:false, discrepancias:[], coerenciaVerificada:null, estado:'Rascunho', jaPublicado:false,
+    gerado:false, confNotas:null, decoradas:[], stagingTentativas:0, fila:false, modoLocal:false, erro:null, exportacoes:[], canaisConfirmados:{}, legal:{certificado:'', licenca:'', isento:false}, canaisSel:[] };
+}
+function touch(ad){ ad.atualizado = nowISO(); saveSoon(); }
+function log(tipo, estado, erro){ S.logs.unshift({ data: nowISO(), tipo, estado, erro: erro || '' }); S.logs = S.logs.slice(0,120); saveSoon(); }
+
+/* ---------- Interface: toasts, diálogos, carregamento ---------- */
+function toast(msg){ const el = document.createElement('div'); el.className='toast'; el.textContent = msg; $('#toasts').appendChild(el); setTimeout(()=>el.remove(), 3600); }
+function dialog({title, text, ok='OK', cancel=null, danger=false}){
+  return new Promise(res => {
+    const host = $('#overlay-host'); const d = document.createElement('div'); d.className='overlay'; d.setAttribute('role','dialog'); d.setAttribute('aria-modal','true');
+    d.innerHTML = `<div class="dialog"><h3>${esc(title)}</h3><div>${text}</div><div class="row" style="justify-content:flex-end">${cancel?`<button class="btn" data-r="0">${esc(cancel)}</button>`:''}<button class="btn ${danger?'danger':'primary'}" data-r="1">${esc(ok)}</button></div></div>`;
+    d.addEventListener('click', e => { const b = e.target.closest('[data-r]'); if (!b) return; d.remove(); res(b.dataset.r === '1'); });
+    host.appendChild(d); d.querySelector('[data-r="1"]').focus();
+  });
+}
+let loadingEl = null;
+function showLoading(msg){ hideLoading(); loadingEl = document.createElement('div'); loadingEl.className='overlay'; loadingEl.setAttribute('role','status'); loadingEl.innerHTML = `<div class="dialog" style="align-items:stretch;text-align:center"><div class="spinner"></div><div id="loadmsg" style="font-weight:700">${esc(msg)}</div><div class="hint">Limite de 15 segundos por pedido.</div></div>`; $('#overlay-host').appendChild(loadingEl); }
+function setLoading(msg){ const m = $('#loadmsg'); if (m) m.textContent = msg; }
+function hideLoading(){ if (loadingEl){ loadingEl.remove(); loadingEl = null; } }
+
+/* ---------- IA real (capacidade «sample» do ambiente) ---------- */
+let sampleNS = undefined, aiLimits = null;
+async function getSample(){
+  if (sampleNS !== undefined) return sampleNS;
+  try { sampleNS = (window.claude && await window.claude.use('sample')) || null; } catch(e){ sampleNS = null; }
+  if (sampleNS){ try { aiLimits = await sampleNS.limits(); } catch(e){ aiLimits = {images:true}; } }
+  return sampleNS;
+}
+const online = () => navigator.onLine !== false;
+class AIError extends Error { constructor(kind, detail){ super(detail || kind); this.kind = kind; this.detail = detail || ''; } }
+function dataURLtoBlob(u){ const [h,b] = u.split(','); const mime = h.match(/:(.*?);/)[1]; const bin = atob(b); const a = new Uint8Array(bin.length); for (let i=0;i<bin.length;i++) a[i]=bin.charCodeAt(i); return new Blob([a], {type:mime}); }
+// Primeira chamada pede consentimento: sem limite de 15 s para o pedido de permissão.
+async function ensureAI(){
+  const s = await getSample(); if (!s) throw new AIError('indisponivel', 'A capacidade de IA não está disponível nesta vista.');
+  if (!S.aiConsent){
+    try { await s('Responde apenas: ok', {cache:false}); S.aiConsent = true; saveSoon(); }
+    catch(e){ throw new AIError(e && e.code === 'not_granted' ? 'indisponivel' : 'rede', (e && (e.message||e.code)) || 'falha'); }
+  }
+  return s;
+}
+// Executa um pedido de IA com limite real de 15 s, registo e classificação de erros.
+async function callAI(tipo, fn){
+  const t0 = performance.now();
+  if (!online()){ log(tipo, 'falhou', 'sem ligação'); throw new AIError('rede', 'Sem ligação à internet.'); }
+  let s; try { s = await ensureAI(); } catch(e){ log(tipo, 'falhou', e.detail || e.message); throw e; }
+  const ctl = new AbortController();
+  let timer;
+  const timeout = new Promise((_, rej) => { timer = setTimeout(() => { ctl.abort(); rej(new AIError('timeout', 'Tempo limite de 15 s excedido.')); }, TIMEOUT_MS); });
+  try {
+    const r = await Promise.race([fn(s, ctl.signal), timeout]);
+    log(tipo, 'sucesso', ''); return r;
+  } catch(e){
+    if (e instanceof AIError){ log(tipo, 'falhou', e.detail || e.message); throw e; }
+    const err = new AIError(e && e.code === 'rate_limited' ? 'rede' : (e && e.name === 'AbortError' ? 'timeout' : (e && e.code === 'not_granted' ? 'indisponivel' : 'rede')), (e && (e.message || e.code)) || 'erro desconhecido');
+    log(tipo, 'falhou', err.detail); throw err;
+  } finally { clearTimeout(timer); void t0; }
+}
+function parseJSONLoose(x){
+  if (x && typeof x === 'object') return x;
+  let t = String(x||'').trim(); t = t.replace(/^```(?:json)?/i,'').replace(/```$/,'').trim();
+  const a = t.indexOf('{'), b = t.lastIndexOf('}'); if (a>=0 && b>a) t = t.slice(a,b+1);
+  return JSON.parse(t);
+}
+async function askJSON(s, signal, prompt, opts){
+  let r;
+  try { r = await s.json(prompt, Object.assign({signal, cache:false, modelTier:'default'}, opts||{})); }
+  catch(e){ if (e && e.name === 'SyntaxError') throw new AIError('invalida', 'Resposta não é JSON.'); throw e; }
+  try { return parseJSONLoose(r); } catch(e){ throw new AIError('invalida', 'Resposta não é JSON.'); }
+}
+async function aiExtract(ad){
+  return callAI('Extração de características', async (s, signal) => {
+    if (!aiLimits || aiLimits.images === false) throw new AIError('indisponivel', 'Este ambiente não permite enviar imagens à IA.');
+    const imgs = ad.fotos.slice(0, MAX_FOTOS).map(f => dataURLtoBlob(f.data));
+    const prompt = `És um assistente de análise de fotografias de imóveis para anúncios. Recebes ${imgs.length} fotografias, numeradas de 1 a ${imgs.length} pela ordem em que chegam.
+Lista as características do imóvel que se VEEM claramente nas fotografias (por exemplo: "luz natural", "piso em madeira", "cozinha equipada", "roupeiro embutido", "varanda", "base de duche").
+Regras: não inventes; se não vês, não incluas; não descrevas pessoas; cada característica tem um nome curto em minúsculas, em português de Portugal, sem repetições; "confianca" é a tua confiança honesta de 0 a 100; "foto" é o número da fotografia onde a viste melhor.
+Responde apenas com JSON: {"caracteristicas":[{"nome":"...","confianca":88,"foto":1}]}`;
+    const j = await askJSON(s, signal, prompt, {images: imgs});
+    if (!j || !Array.isArray(j.caracteristicas)) throw new AIError('invalida', 'Formato inesperado.');
+    return j.caracteristicas.filter(c => c && c.nome).map(c => ({ nome: String(c.nome).trim().toLowerCase(), confianca: Math.max(0, Math.min(100, Number(c.confianca)||0)), foto: Number(c.foto)||null }));
+  });
+}
+async function aiGenerate(ad, instrucoes){
+  return callAI('Geração de título, descrição e preço', async (s, signal) => {
+    const dados = { tipologia: ad.tipologia, localizacao: sanitizeNotes(ad.localizacao).texto, area_m2: parseArea(ad.area), notas_do_agente: sanitizeNotes(ad.notas).texto, caracteristicas_confirmadas: approved(ad).map(c=>c.nome), tem_fotografias: ad.fotos.length>0 };
+    const prompt = `Escreve um anúncio imobiliário em português de Portugal, tom profissional e rigoroso, para este imóvel.
+Dados (usa SÓ estes dados, não acrescentes divisões, equipamentos ou características que neles não constem): ${JSON.stringify(dados)}
+Título: até 80 caracteres. Descrição: 80 a 140 palavras, dois parágrafos curtos, sem exageros nem superlativos vazios.${instrucoes?`\nInstruções do agente para esta nova versão (cumpre-as sem acrescentar nada que não conste dos dados): ${String(instrucoes).slice(0,300)}`:''}
+Preço: estimativa indicativa de valor de mercado em euros, com base na tipologia, na área e na localização; se não tiveres base razoável, "preco_eur": null. Não tens acesso a dados de mercado atuais e deves dizê-lo. "nota_preco" é uma frase curta a justificar a estimativa ou a explicar porque não há.
+Responde apenas com JSON: {"titulo":"...","descricao":"...","preco_eur":null,"nota_preco":"..."}`;
+    const j = await askJSON(s, signal, prompt);
+    if (!j || !j.titulo || !j.descricao) throw new AIError('invalida', 'Faltam título ou descrição.');
+    return { titulo: String(j.titulo).trim(), descricao: String(j.descricao).trim(), preco: Number(j.preco_eur) > 0 ? Math.round(Number(j.preco_eur)/1000)*1000 : '', precoNota: String(j.nota_preco||'') };
+  });
+}
+async function aiCoherence(ad){
+  return callAI('Validação de coerência', async (s, signal) => {
+    const dados = { notas_do_agente: sanitizeNotes(ad.notas).texto, titulo: ad.titulo, descricao: ad.descricao, caracteristicas_confirmadas_a_partir_das_fotografias: approved(ad).map(c=>c.nome), numero_de_fotografias: ad.fotos.length };
+    const prompt = `Verifica a coerência entre o que o agente escreveu e o que as fotografias mostram. Dados: ${JSON.stringify(dados)}
+Começa pelas NOTAS DO AGENTE e depois pelo título e pela descrição. Procura afirmações FÍSICAS (divisões, equipamentos, acabamentos, luminosidade, espaços exteriores) em qualquer um deles que NÃO tenham suporte nas características confirmadas a partir das fotografias, ou que as contradigam. Isto inclui afirmações que só aparecem nas notas e que o texto omitiu. Ignora tipologia, área, preço e localização. A ausência de uma foto de algo é uma discrepância a decidir pelo agente. Se o texto ainda estiver vazio, verifica só as notas.
+Para cada discrepância: "afirmacao" (curta), "motivo" (uma frase), "trecho_notas" (excerto EXATO copiado das notas onde aparece, ou ""), "trecho_texto" (excerto EXATO copiado do título ou da descrição onde aparece, ou ""), "sugestao" (APENAS as palavras que substituem o trecho, curtas e prontas a colar no texto, por exemplo "espaços amplos"; ou "" para remover o trecho; nunca escrevas conselhos, instruções ou perguntas ao agente nesse campo). Pelo menos um dos trechos tem de estar preenchido.
+Se tudo estiver suportado, devolve lista vazia. Responde apenas com JSON: {"discrepancias":[{"afirmacao":"...","motivo":"...","trecho_notas":"","trecho_texto":"","sugestao":""}]}`;
+    const j = await askJSON(s, signal, prompt);
+    if (!j || !Array.isArray(j.discrepancias)) throw new AIError('invalida', 'Formato inesperado.');
+    const texto = `${ad.titulo}\n${ad.descricao}`.toLowerCase(), notas = String(ad.notas||'').toLowerCase();
+    return j.discrepancias.filter(d => d && d.afirmacao).map(d => {
+      const tt = d.trecho_texto || d.trecho || '', tn = d.trecho_notas || '';
+      return { id: uid(), afirmacao: String(d.afirmacao), motivo: String(d.motivo||''),
+        trecho: tt && texto.includes(String(tt).toLowerCase()) ? String(tt) : '',
+        trechoNotas: tn && notas.includes(String(tn).toLowerCase()) ? String(tn) : '',
+        sugestao: (String(d.sugestao||'').length > 120 || /decis[aã]o do agente|corrigir as notas|se a casa/i.test(String(d.sugestao||''))) ? '' : String(d.sugestao||'').trim(), decisao: null };
+    });
+  });
+}
+const errMsg = e => e.kind==='timeout' ? 'A IA demorou demasiado.' : e.kind==='rede' ? 'Falha ao contactar o servidor.' : e.kind==='invalida' ? 'A IA devolveu uma resposta inválida.' : 'A IA não está disponível neste ambiente.';
+
+/* ---------- Ficheiros: leitura real e validação ---------- */
+function readBytes(file, n){ return file.slice(0,n).arrayBuffer().then(b => new Uint8Array(b)); }
+async function sniffImage(file){
+  const b = await readBytes(file, 12);
+  if (b[0]===0xFF && b[1]===0xD8 && b[2]===0xFF) return 'JPEG';
+  if (b[0]===0x89 && b[1]===0x50 && b[2]===0x4E && b[3]===0x47) return 'PNG';
+  if (b[0]===0x47 && b[1]===0x49 && b[2]===0x46 && b[3]===0x38) return 'GIF';
+  if (b[0]===0x52 && b[1]===0x49 && b[2]===0x46 && b[3]===0x46 && b[8]===0x57 && b[9]===0x45) return 'WebP';
+  if (b[4]===0x66 && b[5]===0x74 && b[6]===0x79 && b[7]===0x70) return 'HEIC';
+  if (b[0]===0x42 && b[1]===0x4D) return 'BMP';
+  return 'DESCONHECIDO';
+}
+async function sniffAudio(file){
+  const b = await readBytes(file, 12);
+  if ((b[0]===0x49 && b[1]===0x44 && b[2]===0x33) || (b[0]===0xFF && (b[1] & 0xE0) === 0xE0)) return 'MP3';
+  if (b[0]===0x52 && b[1]===0x49 && b[2]===0x46 && b[3]===0x46) return b[8]===0x57 && b[9]===0x41 ? 'WAV' : 'DESCONHECIDO';
+  if (b[0]===0x4F && b[1]===0x67 && b[2]===0x67 && b[3]===0x53) return 'OGG';
+  if (b[4]===0x66 && b[5]===0x74 && b[6]===0x79 && b[7]===0x70) return 'M4A';
+  if (b[0]===0x66 && b[1]===0x4C && b[2]===0x61 && b[3]===0x43) return 'FLAC';
+  return 'DESCONHECIDO';
+}
+function loadImage(url){ return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('decode')); i.src = url; }); }
+function hexHead(file){ return readBytes(file, 8).then(b => [...b].map(x => x.toString(16).padStart(2,'0')).join(' ')).catch(() => '?'); }
+// Lê a imagem por vários caminhos (createImageBitmap, depois data URL) e devolve as dimensões e uma função de desenho.
+async function decodeImage(file){
+  const erros = [];
+  if (window.createImageBitmap){
+    try { const bm = await createImageBitmap(file); return { w: bm.width, h: bm.height, src: bm, done: () => { try { bm.close(); } catch(e){} } }; }
+    catch(e){ erros.push('bitmap: ' + (e && e.message || e)); }
+  }
+  try {
+    const url = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error || new Error('leitura')); r.readAsDataURL(file); });
+    const img = await loadImage(url);
+    return { w: img.naturalWidth, h: img.naturalHeight, src: img, done: () => {} };
+  } catch(e){ erros.push('img: ' + (e && e.message || e)); }
+  const err = new Error(erros.join(' | ')); throw err;
+}
+async function processImage(file){
+  let formato;
+  try { formato = await sniffImage(file); } catch(e){ formato = 'DESCONHECIDO'; }
+  if (!['JPEG','PNG','HEIC'].includes(formato)){
+    const p = imageProblem({formato, bytes:file.size, w:0, h:0});
+    return { ok:false, motivo: formato === 'DESCONHECIDO' ? `${p} (${file.size} bytes, tipo «${file.type||'desconhecido'}», cabeçalho ${await hexHead(file)})` : p };
+  }
+  let dec;
+  try { dec = await decodeImage(file); }
+  catch(e){ return { ok:false, motivo: formato === 'HEIC' ? 'O formato HEIC não pôde ser lido neste navegador. Use JPEG ou PNG.' : `Não foi possível abrir a imagem neste navegador (${formato}, ${fmtMB(file.size)} MB). Detalhe técnico: ${e.message}` }; }
+  try {
+    const { w, h } = dec;
+    const p = imageProblem({formato, bytes:file.size, w, h}); if (p) return { ok:false, motivo:p };
+    const k = Math.min(1, 1280/Math.max(w,h)); const c = document.createElement('canvas'); c.width = Math.round(w*k); c.height = Math.round(h*k);
+    c.getContext('2d').drawImage(dec.src, 0, 0, c.width, c.height);
+    return { ok:true, foto:{ id:uid(), nome:file.name, w, h, bytes:file.size, data:c.toDataURL('image/jpeg', 0.78) } };
+  } catch(e){ return { ok:false, motivo:`Não foi possível preparar a imagem (${e && e.message || e}).` }; }
+  finally { dec.done(); }
+}
+async function processAudio(file){
+  const formato = await sniffAudio(file);
+  const pre = audioProblem({formato, dur:0, bytes:file.size}); if (pre) return { ok:false, motivo: pre };
+  const url = URL.createObjectURL(file);
+  try {
+    const dur = await new Promise((res, rej) => { const a = new Audio(); a.preload='metadata'; a.onloadedmetadata = () => res(a.duration); a.onerror = () => rej(new Error('audio')); a.src = url; setTimeout(()=>rej(new Error('timeout')), 8000); });
+    const p = audioProblem({formato, dur, bytes:file.size}); if (p) return { ok:false, motivo:p };
+    const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); });
+    return { ok:true, audio:{ nome:file.name, dur, data } };
+  } catch(e){ return { ok:false, motivo:`Este navegador não consegue ler o áudio (${formato}). Experimente MP3 ou M4A.` }; }
+  finally { URL.revokeObjectURL(url); }
+}
+
+
+/* ---------- Virtual Staging (UC-01 FA3) ---------- */
+// RN05: limite de imagens decoradas e de tentativas por anúncio
+function canStage(ad){
+  if (!ad.fotos.length) return { ok:false, motivo:'Adicione fotografias para usar o Virtual Staging.' };
+  if ((ad.stagingTentativas||0) >= STG_MAX_TENT) return { ok:false, motivo:`Limite de tentativas atingido (${STG_MAX_TENT}/${STG_MAX_TENT}) para controlar custos de IA.` };
+  if ((ad.decoradas||[]).length >= STG_MAX_DECORADAS) return { ok:false, motivo:`Limite de ${STG_MAX_DECORADAS} imagens decoradas atingido.` };
+  return { ok:true, motivo:'' };
+}
+const STG_TIPOS = ['sofa','mesa_centro','tapete','cadeira','planta','cama','candeeiro','estante','mesa_cabeceira','mesa_jantar','quadro'];
+async function aiStaging(foto, estilo, extra){
+  return callAI('Virtual Staging', async (s, signal) => {
+    if (!aiLimits || aiLimits.images === false) throw new AIError('indisponivel', 'Este ambiente não permite enviar imagens à IA.');
+    const prompt = `Estás a preparar uma pré-visualização de decoração (virtual staging) para um anúncio imobiliário. Recebes uma fotografia de uma divisão.
+Primeiro indica o tipo de divisão e a altura do horizonte (a linha do nível dos olhos da câmara) como fração da altura da imagem, de 0 (topo) a 1 (fundo).
+Depois propõe até 6 peças de mobiliário a ACRESCENTAR apenas em zonas livres do chão (ou, para "quadro", numa parede livre), sem tapar portas, janelas, equipamentos ou mobília que já exista. Estilo pedido: ${estilo}.${extra?` Instruções adicionais do agente: ${String(extra).slice(0,200)}.`:''}
+Peças permitidas: ${STG_TIPOS.join(', ')}.
+Para cada peça dá: "cx" (posição horizontal do centro da peça, 0 a 1), "base_y" (posição vertical do ponto onde a peça TOCA NO CHÃO, 0 a 1; tem de estar dentro do chão visível; para "quadro" é o centro vertical na parede) e "largura" (largura da peça na imagem, como fração da largura da imagem, naquela profundidade). Usa portas, janelas e rodapés como referência de escala (uma porta tem cerca de 0,9 m de largura; um sofá de 3 lugares cerca de 2 m). Peças mais afastadas (base_y menor, mais perto do horizonte) têm de ser mais estreitas que peças próximas. Não sobreponhas peças, exceto o tapete, que pode ficar por baixo de sofá e mesa de centro. Se não houver espaço livre, devolve "pecas": [].
+Responde apenas com JSON: {"divisao":"sala","horizonte":0.45,"pecas":[{"tipo":"sofa","cx":0.5,"base_y":0.85,"largura":0.45}]}`;
+    const j = await askJSON(s, signal, prompt, {images: [dataURLtoBlob(foto.data)]});
+    if (!j || !Array.isArray(j.pecas)) throw new AIError('invalida', 'Formato inesperado.');
+    const hor = Math.max(0.1, Math.min(0.8, Number(j.horizonte) || 0.45));
+    const pecas = j.pecas.filter(p => p && STG_TIPOS.includes(p.tipo)).slice(0,6).map(p => {
+      const by = Number(p.base_y) || 0.8;
+      return { tipo: p.tipo, cx: Math.max(0.05, Math.min(0.95, Number(p.cx)||0.5)), largura: Math.max(0.04, Math.min(0.7, Number(p.largura)||0.2)),
+        base_y: p.tipo === 'quadro' ? Math.max(0.08, Math.min(0.9, by)) : Math.max(hor+0.03, Math.min(0.97, by)) };
+    });
+    return { divisao: String(j.divisao||'divisão'), horizonte: hor, pecas };
+  });
+}
+// Reserva local: peças genéricas numa zona inferior central (modo local)
+function localStagingPlan(){ return { divisao:'divisão', horizonte:0.45, pecas:[{tipo:'tapete',cx:0.5,base_y:0.93,largura:0.55},{tipo:'sofa',cx:0.5,base_y:0.80,largura:0.46},{tipo:'mesa_centro',cx:0.5,base_y:0.91,largura:0.2},{tipo:'planta',cx:0.86,base_y:0.80,largura:0.08}] }; }
+const STG_PAL = {
+  'Moderno':     {sofa:'#51708F', alm:'#A9C1D6', mesa:'#2A2A2E', tapete:'#C4CED8', folha:'#3F8A58', vaso:'#DADADA', mad:'#8F6C4B', cama:'#6F859B', roupa:'#E9EEF2', luz:'#26262A', quadro:'#2F4A66'},
+  'Clássico':    {sofa:'#7C3340', alm:'#D9B98A', mesa:'#5B3A24', tapete:'#B58B5C', folha:'#4F7A4A', vaso:'#C8A27A', mad:'#6B4528', cama:'#8A5A44', roupa:'#F3E9D8', luz:'#A8803B', quadro:'#7A5A2C'},
+  'Minimalista': {sofa:'#E6E3DD', alm:'#BDB8AE', mesa:'#EFEDE8', tapete:'#E2DDD2', folha:'#6FA27F', vaso:'#FFFFFF', mad:'#D6C2A0', cama:'#F0EEE9', roupa:'#FFFFFF', luz:'#1A1A1A', quadro:'#222222'}
+};
+// proporções (altura e profundidade como fração da largura) de cada peça
+const STG_DIM = { sofa:{h:0.425,d:0.45}, mesa_centro:{h:0.4,d:0.6}, tapete:{h:0,d:0.75}, cadeira:{h:1.19,d:1.06}, planta:{h:2.4,d:0.7}, cama:{h:0.69,d:1.25}, candeeiro:{h:4.6,d:0.3}, estante:{h:2.25,d:0.38}, mesa_cabeceira:{h:1.2,d:0.9}, mesa_jantar:{h:0.47,d:0.56}, quadro:{h:0.75,d:0} };
+function rrect(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+function hex2rgb(h){ const n = parseInt(h.slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+function tint(rgb, k, amb){ const g = (rgb[0]+rgb[1]+rgb[2])/3; return `rgb(${[0,1,2].map(i => Math.max(0,Math.min(255,Math.round((rgb[i]*0.82+g*0.18)*k*amb[i])))).join(',')})`; }
+function rnd(seed){ let t = seed >>> 0; return () => { t += 0x6D2B79F5; let r = Math.imul(t ^ t >>> 15, 1 | t); r ^= r + Math.imul(r ^ r >>> 7, 61 | r); return ((r ^ r >>> 14) >>> 0) / 4294967296; }; }
+function poly(c, pts, fill){ c.beginPath(); pts.forEach((q,i)=> i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1])); c.closePath(); c.fillStyle = fill; c.fill(); }
+function lin(c, x0,y0,x1,y1, a, b){ const g = c.createLinearGradient(x0,y0,x1,y1); g.addColorStop(0,a); g.addColorStop(1,b); return g; }
+// Caixa com perspetiva: face frontal, topo e lado voltado para o centro da imagem
+function box(c, o){
+  const { x, base, w, h, fd, vp, col, amb, L, side = true } = o;   // x = centro; base = y do chão (frente); fd = profundidade projetada no chão (px)
+  const shrink = 0.9, x0 = x - w/2, x1 = x + w/2, yT = base - h;
+  const back = [(1-shrink)*w/2, fd];
+  const top = [[x0,yT],[x1,yT],[x1-back[0],yT-back[1]],[x0+back[0],yT-back[1]]];
+  poly(c, top, tint(col, 1.18*L.k, amb));
+  if (side && vp !== 0){
+    const toRight = vp > 0; // vp>0: centro da imagem está à direita do objeto → vê-se o lado direito
+    const sx = toRight ? x1 : x0, ex = toRight ? x1 - back[0] : x0 + back[0];
+    poly(c, [[sx,yT],[ex,yT-back[1]],[ex,base-back[1]*0.9],[sx,base]], tint(col, 0.68*L.k, amb));
+  }
+  c.fillStyle = lin(c, 0,yT,0,base, tint(col,1.02*L.k,amb), tint(col,0.82*L.k,amb)); c.fillRect(x0, yT, w, h);
+}
+function softShadow(c, cx, base, w, fd, L){ c.save(); c.shadowColor = `rgba(0,0,0,${0.33*L.sh})`; c.shadowBlur = Math.max(6, w*0.07); c.shadowOffsetX = 1e4 + L.dx*w*0.12; c.shadowOffsetY = 0; c.fillStyle = '#000'; c.beginPath(); c.ellipse(cx-1e4, base-fd*0.25, w*0.58, Math.max(fd*0.55,5), 0, 0, Math.PI*2); c.fill(); c.restore(); }
+function contact(c, cx, base, w, fd){ const g = c.createRadialGradient(cx,base-fd*0.15,1,cx,base-fd*0.15,w*0.55); g.addColorStop(0,'rgba(0,0,0,.45)'); g.addColorStop(1,'rgba(0,0,0,0)'); c.fillStyle = g; c.beginPath(); c.ellipse(cx, base-fd*0.15, w*0.55, Math.max(fd*0.35,4), 0, 0, Math.PI*2); c.fill(); }
+function drawPiece3D(c, p, W, H, pal, hor, amb, L){
+  const dim = STG_DIM[p.tipo], w = p.largura*W, x = p.cx*W, base = p.base_y*H;
+  const persp = Math.max(0.04, Math.min(0.6, (p.base_y - hor) * H / (0.9*W)));
+  const fd = dim.d * w * persp, h = dim.h * w, vp = Math.abs(p.cx - 0.5) < 0.08 ? 0 : (0.5 - p.cx);
+  const C = k => hex2rgb(pal[k]); const rr = rnd(Math.round(p.cx*1000+p.base_y*777));
+  if (!['tapete','quadro','candeeiro'].includes(p.tipo)) contact(c, x, base, p.tipo==='planta' ? w*0.8 : w, fd);
+  switch(p.tipo){
+    case 'tapete': { const wb = w*0.8, yb = base - fd; poly(c, [[x-w/2,base],[x+w/2,base],[x+wb/2,yb],[x-wb/2,yb]], tint(C('tapete'),L.k,amb)); c.strokeStyle = tint(C('alm'),L.k,amb); c.lineWidth = Math.max(2,w*0.012); c.beginPath(); c.moveTo(x-w*0.44,base-fd*0.1); c.lineTo(x+w*0.44,base-fd*0.1); c.lineTo(x+wb*0.44,yb+fd*0.1); c.lineTo(x-wb*0.44,yb+fd*0.1); c.closePath(); c.stroke(); break; }
+    case 'sofa': { softShadow(c,x,base,w,fd,L); const col = C('sofa');
+      box(c,{x, base:base-fd*0.6, w:w*0.98, h:h, fd:fd*0.4, vp:0, col, amb, L, side:false});          // costas
+      box(c,{x, base, w, h:h*0.53, fd, vp, col, amb, L});                                                      // assento
+      const a = w*0.1; for (const sx of [-1,1]) box(c,{x:x+sx*(w/2-a/2), base, w:a, h:h*0.72, fd, vp:0, col, amb, L, side:false});
+      const n = w > 0.18*W ? 3 : 2, cw = (w-2*a)/n; for (let i=0;i<n;i++){ c.fillStyle = lin(c,0,base-h*0.53,0,base-h*0.1, tint(col,1.12*L.k,amb), tint(col,0.9*L.k,amb)); rrect(c, x-w/2+a+i*cw+cw*0.04, base-h*0.53, cw*0.92, h*0.4, cw*0.1); c.fill(); }
+      const ac = C('alm'); for (const sx of [-1,1]){ c.save(); c.translate(x+sx*(w/2-a-w*0.07), base-h*0.72); c.rotate(sx*0.12); c.fillStyle = tint(ac,L.k,amb); rrect(c,-w*0.06,-w*0.06,w*0.12,w*0.12,w*0.02); c.fill(); c.restore(); }
+      break; }
+    case 'mesa_centro': { softShadow(c,x,base,w,fd,L); const m = C('mad'), lg = C('mesa');
+      for (const sx of [-1,1]) for (const sy of [0,1]){ c.fillStyle = tint(lg,0.8*L.k,amb); c.fillRect(x+sx*w*0.42-w*0.02, base-fd*sy*0.8-h, w*0.04, h); }
+      box(c,{x, base:base-h*0.12, w, h:h*0.22, fd, vp, col:m, amb, L});
+      c.fillStyle = tint(C('vaso'),L.k,amb); c.beginPath(); c.ellipse(x+w*0.1, base-h*0.12-h*0.22-fd*0.4, w*0.08, w*0.03, 0, 0, Math.PI*2); c.fill();
+      break; }
+    case 'cadeira': { softShadow(c,x,base,w,fd,L); const col = C('sofa'), m = C('mad');
+      box(c,{x, base:base-fd*0.5, w:w*0.9, h:h, fd:fd*0.3, vp:0, col, amb, L, side:false});
+      box(c,{x, base, w, h:h*0.47, fd, vp, col, amb, L});
+      for (const sx of [-1,1]){ c.fillStyle = tint(m,0.8*L.k,amb); c.fillRect(x+sx*w*0.42-w*0.03, base-h*0.02, w*0.06, h*0.04); }
+      break; }
+    case 'planta': { softShadow(c,x,base,w*0.9,fd,L); const pw = w*0.7, ph = w*0.75; const vc = C('vaso');
+      c.fillStyle = lin(c,x-pw/2,0,x+pw/2,0,tint(vc,1.1*L.k,amb),tint(vc,0.75*L.k,amb)); c.beginPath(); c.moveTo(x-pw/2,base-ph); c.lineTo(x+pw/2,base-ph); c.lineTo(x+pw*0.38,base); c.lineTo(x-pw*0.38,base); c.closePath(); c.fill();
+      c.fillStyle = tint([60,40,30],L.k,amb); c.beginPath(); c.ellipse(x,base-ph,pw/2,pw*0.09,0,0,Math.PI*2); c.fill();
+      const fc = C('folha'); const n = 16; for (let i=0;i<n;i++){ const ang = -Math.PI/2 + (rr()-0.5)*2.1, len = h*(0.38+rr()*0.42), wd = w*(0.16+rr()*0.1), px = x + (rr()-0.5)*pw*0.5, py = base-ph; const ex = px+Math.cos(ang)*len, ey = py+Math.sin(ang)*len; const nx = -Math.sin(ang)*wd, ny = Math.cos(ang)*wd;
+        c.fillStyle = tint(fc,(0.7+rr()*0.5)*L.k,amb); c.beginPath(); c.moveTo(px,py); c.quadraticCurveTo((px+ex)/2+nx,(py+ey)/2+ny,ex,ey); c.quadraticCurveTo((px+ex)/2-nx,(py+ey)/2-ny,px,py); c.fill(); }
+      break; }
+    case 'cama': { softShadow(c,x,base,w,fd,L); const col = C('cama'), m = C('mad'), r = C('roupa');
+      box(c,{x, base:base-fd*0.95, w:w*1.02, h:h, fd:fd*0.1, vp:0, col:m, amb, L, side:false});          // cabeceira
+      box(c,{x, base, w, h:h*0.45, fd, vp, col, amb, L});                                                       // colchão
+      c.fillStyle = tint(r,1.05*L.k,amb); for (const sx of [-1,1]) { rrect(c, x+sx*w*0.22-w*0.17, base-h*0.45-fd*0.78, w*0.34, Math.max(fd*0.3,w*0.07), fd*0.1); c.fill(); }
+      c.fillStyle = lin(c,0,base-h*0.45-fd*0.2,0,base-h*0.45-fd*0.62,tint(col,1.05*L.k,amb),tint(col,0.92*L.k,amb)); poly(c,[[x-w/2,base-h*0.45],[x+w/2,base-h*0.45],[x+w*0.46,base-h*0.45-fd*0.62],[x-w*0.46,base-h*0.45-fd*0.62]],c.fillStyle);
+      break; }
+    case 'mesa_cabeceira': { softShadow(c,x,base,w,fd,L); box(c,{x, base, w, h, fd, vp, col:C('mad'), amb, L}); c.fillStyle='rgba(0,0,0,.25)'; c.fillRect(x-w*0.4, base-h*0.62, w*0.8, Math.max(1,h*0.02)); c.fillRect(x-w*0.4, base-h*0.3, w*0.8, Math.max(1,h*0.02)); break; }
+    case 'candeeiro': { softShadow(c,x,base,w*2,fd,L); const lc = C('luz'); c.fillStyle = tint(lc,L.k,amb); c.fillRect(x-w*0.04, base-h, w*0.08, h); c.beginPath(); c.ellipse(x,base,w*0.7,Math.max(fd*0.5,3),0,0,Math.PI*2); c.fill();
+      c.fillStyle = lin(c,x-w,0,x+w,0,'#F6EBC3','#D9C98E'); c.beginPath(); c.moveTo(x-w*0.9,base-h*0.78); c.lineTo(x+w*0.9,base-h*0.78); c.lineTo(x+w*0.55,base-h); c.lineTo(x-w*0.55,base-h); c.closePath(); c.fill(); break; }
+    case 'estante': { softShadow(c,x,base,w,fd,L); box(c,{x, base, w, h, fd, vp, col:C('mad'), amb, L}); c.fillStyle = tint([30,24,20],L.k,amb); c.fillRect(x-w*0.44, base-h*0.96, w*0.88, h*0.92);
+      const rs = 4; for (let r=0;r<rs;r++){ const y0 = base-h*0.96 + r*h*0.23; c.fillStyle = tint(C('mad'),L.k,amb); c.fillRect(x-w*0.46, y0+h*0.215, w*0.92, h*0.016); let bx = x-w*0.42; while (bx < x+w*0.36){ const bw = w*(0.04+rr()*0.05), bh = h*(0.1+rr()*0.09); c.fillStyle = tint(hex2rgb(['#7A2E3A','#2F4A66','#C9A66B','#4F7A4A','#D9D2C4'][Math.floor(rr()*5)]),L.k,amb); c.fillRect(bx, y0+h*0.215-bh, bw, bh); bx += bw*1.05; } }
+      break; }
+    case 'mesa_jantar': { softShadow(c,x,base,w,fd,L); const m = C('mad'), cs = C('sofa');
+      for (const sx of [-0.8,0.8]) box(c,{x:x+sx*w*0.62, base, w:w*0.28, h:h*1.1, fd:fd*0.45, vp:0, col:cs, amb, L, side:false});
+      for (const sx of [-1,1]) for (const sy of [0,1]){ c.fillStyle = tint(m,0.7*L.k,amb); c.fillRect(x+sx*w*0.44-w*0.018, base-fd*sy*0.7-h, w*0.036, h); }
+      box(c,{x, base:base-h*0.92, w, h:h*0.1, fd, vp, col:m, amb, L});
+      break; }
+    case 'quadro': { const qw = w, qh = w*0.75, y0 = base - qh/2; c.save(); c.shadowColor = 'rgba(0,0,0,.35)'; c.shadowBlur = qw*0.05; c.shadowOffsetX = L.dx*qw*0.03; c.shadowOffsetY = qw*0.03; c.fillStyle = tint(C('mesa'),L.k,amb); c.fillRect(x-qw/2, y0, qw, qh); c.restore();
+      c.fillStyle = tint([243,241,236],L.k,amb); c.fillRect(x-qw*0.45, y0+qh*0.08, qw*0.9, qh*0.84);
+      c.fillStyle = lin(c,0,y0,0,y0+qh,tint(C('quadro'),1.2*L.k,amb),tint(C('alm'),L.k,amb)); c.beginPath(); c.moveTo(x-qw*0.4,y0+qh*0.86); c.lineTo(x-qw*0.1,y0+qh*0.35); c.lineTo(x+qw*0.08,y0+qh*0.62); c.lineTo(x+qw*0.22,y0+qh*0.42); c.lineTo(x+qw*0.4,y0+qh*0.86); c.closePath(); c.fill(); break; }
+  }
+}
+// Mede a luz da fotografia: tom médio, brilho e direção da fonte mais clara
+function analyseLight(img, W, H){
+  const sw = 64, sh = Math.max(16, Math.round(64*H/W)); const cv = document.createElement('canvas'); cv.width = sw; cv.height = sh; const cx = cv.getContext('2d'); cx.drawImage(img,0,0,sw,sh);
+  const d = cx.getImageData(0,0,sw,sh).data; let r=0,g=0,b=0,n=0,best=-1,bx=sw/2,cnt=0,sumx=0; const lum=[];
+  for (let i=0;i<d.length;i+=4){ r+=d[i]; g+=d[i+1]; b+=d[i+2]; n++; lum.push(d[i]*0.3+d[i+1]*0.59+d[i+2]*0.11); }
+  const thr = [...lum].sort((a,b)=>a-b)[Math.floor(lum.length*0.95)]; lum.forEach((v,i)=>{ if (v>=thr){ sumx += (i%sw); cnt++; } });
+  const mean = (r+g+b)/(3*n), amb = [r/n/mean, g/n/mean, b/n/mean].map(v => Math.max(0.9, Math.min(1.1, v)));
+  const k = Math.max(0.75, Math.min(1.1, 0.55 + mean/255*0.6)); const lx = cnt ? sumx/cnt/sw : 0.5;
+  return { amb, L:{ k, sh: Math.max(0.6, Math.min(1.2, 1.15 - mean/255*0.6)), dx: lx < 0.5 ? 1 : -1 } };
+}
+// Desenha as peças sobre a foto e grava a etiqueta obrigatória na própria imagem (RN06)
+async function renderStaging(fotoData, plan, estilo){
+  const img = await loadImage(fotoData); const W = img.naturalWidth, H = img.naturalHeight;
+  const out = document.createElement('canvas'); out.width = W; out.height = H; const oc = out.getContext('2d'); oc.drawImage(img, 0, 0, W, H);
+  const layer = document.createElement('canvas'); layer.width = W; layer.height = H; const c = layer.getContext('2d');
+  const pal = STG_PAL[estilo] || STG_PAL['Moderno']; const { amb, L } = analyseLight(img, W, H); const hor = plan.horizonte || 0.45;
+  const ordem = {tapete:0, quadro:0, estante:1, cama:2};
+  [...plan.pecas].sort((a,b) => (ordem[a.tipo]??3)-(ordem[b.tipo]??3) || a.base_y - b.base_y).forEach(p => drawPiece3D(c, p, W, H, pal, hor, amb, L));
+  // integrar: ruído de grão semelhante ao da foto e desfoque ligeiro
+  const id = c.getImageData(0,0,W,H), dd = id.data; const rr = rnd(7);
+  for (let i=0;i<dd.length;i+=4){ if (dd[i+3] > 30){ const n = (rr()-0.5)*9; dd[i]+=n; dd[i+1]+=n; dd[i+2]+=n; } }
+  c.putImageData(id,0,0);
+  try { if ('filter' in oc) oc.filter = 'blur(0.6px)'; } catch(e){}
+  oc.drawImage(layer, 0, 0); try { oc.filter = 'none'; } catch(e){}
+  const fs = Math.max(14, Math.round(W*0.022)), bh = Math.round(fs*2.1);
+  oc.fillStyle = 'rgba(0,0,0,.62)'; oc.fillRect(0, H-bh, W, bh);
+  oc.fillStyle = '#FFFFFF'; oc.font = `700 ${fs}px sans-serif`; oc.textBaseline = 'middle'; oc.fillText(STG_LABEL, Math.round(fs*0.7), H-bh/2);
+  return out.toDataURL('image/jpeg', 0.88);
+}
+
+/* ---------- Ícones ---------- */
+const ICON = {
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>',
+  settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  notes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>',
+  back:'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
+};
+
+/* ---------- Render ---------- */
+function chipEstado(e){ return `<span class="chip ${e==='Publicado'?'acc':e==='Concluído'?'ok':'warn'}">${esc(e)}</span>`; }
+function chipCoer(c){ if (c == null) return ''; return `<span class="chip ${c==='Validada'?'ok':c==='Pendente'?'warn':''}">Coerência: ${esc(c)}</span>`; }
+function render(){
+  const main = $('#main'); const keep = main ? main.scrollTop : 0;
+  let html = '';
+  if (V.name === 'edit') html = screenEdit();
+  else if (V.name === 'export') html = screenExport();
+  else html = screenTab();
+  $('#root').innerHTML = html;
+  const m = $('#main'); if (m) m.scrollTop = keep;
+  if (V.name === 'edit' && V.step === 3) refreshStep3();
+}
+function header(title, sub, back){
+  return `<header class="bar">${back?`<button class="icon-btn" data-act="back" aria-label="Voltar">${ICON.back}</button>`:''}<h1>${esc(title)}${sub?`<span class="sub">${esc(sub)}</span>`:''}</h1></header>`;
+}
+function tabsBar(){
+  const t = (id, label, ic) => `<button data-act="tab" data-tab="${id}" ${V.tab===id?'aria-current="page"':''}>${ICON[ic]}${label}</button>`;
+  return `<nav class="tabs" aria-label="Navegação principal">${t('list','Anúncios','list')}${t('settings','Definições','settings')}${t('notes','Protótipo','notes')}</nav>`;
+}
+function screenTab(){
+  if (V.tab === 'settings') return header('Definições','Estado da IA e registos') + `<main id="main">${settingsBody()}</main>` + tabsBar();
+  if (V.tab === 'notes') return header('Notas do protótipo','Hipóteses, limitações e verificação') + `<main id="main">${notesBody()}</main>` + tabsBar();
+  const ads = [...S.ads].sort((a,b)=> b.atualizado.localeCompare(a.atualizado));
+  const body = ads.length ? ads.map(adCard).join('') : `<div class="empty"><h2>Sem anúncios</h2><div class="hint">Crie o primeiro anúncio com as fotografias e as notas da visita.</div><button class="btn primary" data-act="new">${ICON.plus} Criar Anúncio</button></div>`;
+  const offline = !online() ? `<div class="banner warn">Sem ligação à internet. Pode recolher fotografias e notas; os pedidos de IA ficam em fila.</div>` : '';
+  const stor = !storageOK ? `<div class="banner bad">Este ambiente não permite guardar dados no dispositivo. Os anúncios perdem-se ao fechar a página.</div>` : '';
+  return header('PropSell','Olá, João Silva') + `<main id="main">${offline}${stor}${body}</main>${ads.length?`<button class="btn primary fab" data-act="new" aria-label="Criar Anúncio">${ICON.plus} Criar Anúncio</button>`:''}` + tabsBar();
+}
+function adCard(a){
+  const pic = a.fotos[0] ? `<img src="${a.fotos[0].data}" alt="">` : 'sem foto';
+  const t = a.titulo || `${a.tipologia||'Anúncio'}${a.localizacao?` · ${a.localizacao}`:''}${a.area?` · ${a.area} m²`:''}${!a.tipologia&&!a.area&&!a.localizacao?' sem dados':''}`;
+  const fila = a.fila ? `<span class="chip warn">Pedido em fila</span>` : '';
+  const ja = a.jaPublicado && a.estado !== 'Publicado' ? `<span class="chip">Já publicado antes</span>` : '';
+  return `<button class="ad-card" data-act="open" data-id="${a.id}"><div class="pic">${pic}</div><div style="flex:1;min-width:0"><div class="t">${esc(t)}</div><div class="meta">${a.fotos.length} foto${a.fotos.length===1?'':'s'} · ${fmtDate(a.atualizado)}</div><div class="row" style="margin-top:6px">${chipEstado(a.estado)}${chipCoer(a.gerado?coherenceOf(a):null)}${fila}${ja}</div></div></button>`;
+}
+
+/* ----- Ecrã de edição (3 etapas) ----- */
+function screenEdit(){
+  const ad = curAd(); if (!ad){ V.name='list'; return screenTab(); }
+  const titulo = ad.titulo ? ad.titulo : 'Novo anúncio';
+  const s = (n, label) => `<button data-act="step" data-n="${n}" ${V.step===n?'aria-current="step"':''}>${n}. ${label}</button>`;
+  let body = '';
+  if (V.step === 1) body = step1(ad); else if (V.step === 2) body = step2(ad); else body = step3(ad);
+  return header(titulo, `${ad.estado}${ad.modoLocal?' · modo local':''}`, true) + `<main id="main"><div class="steps" role="tablist">${s(1,'Dados')}${s(2,'Características')}${s(3,'Proposta')}</div>${body}</main>`;
+}
+function errorsPanel(){
+  const list = V.fileErrors || []; if (!list.length) return '';
+  return `<div class="banner bad" role="alert"><div><strong>Ficheiros recusados</strong><ul style="margin:6px 0 0;padding-left:18px">${list.map(e=>`<li><strong>${esc(e.nome)}</strong>: ${esc(e.motivo)}</li>`).join('')}</ul></div><button class="x" data-act="close-errors">Fechar</button></div>`;
+}
+function step1(ad){
+  const er = V.formErr || {};
+  const off = !online() ? `<div class="banner warn">Sem ligação à internet. A recolha continua a funcionar; ao gerar, o pedido fica em fila.</div>` : '';
+  const fila = ad.fila ? `<div class="banner info">Pedido de IA em fila. Será processado automaticamente quando a ligação regressar.</div>` : '';
+  const erro = ad.erro ? errorBox(ad) : '';
+  return `${off}${fila}${erro}
+  <div class="card">
+    <div class="field ${er.tipologia?'invalid':''}"><label for="f-tip">Tipologia</label><input id="f-tip" type="text" data-bind="tipologia" value="${esc(ad.tipologia)}" placeholder="Ex.: T2" autocomplete="off">${er.tipologia?`<div class="err">${esc(er.tipologia)}</div>`:''}</div>
+    <div class="field ${er.localizacao?'invalid':''}"><label for="f-loc">Localização</label><input id="f-loc" type="text" data-bind="localizacao" value="${esc(ad.localizacao)}" placeholder="Ex.: Alvalade, Lisboa" autocomplete="off"><div class="hint">Concelho ou freguesia. A morada exata nunca é enviada à IA.</div>${er.localizacao?`<div class="err">${esc(er.localizacao)}</div>`:''}</div>
+    <div class="field ${er.area?'invalid':''}"><label for="f-area">Área (m²)</label><input id="f-area" type="text" inputmode="decimal" data-bind="area" value="${esc(ad.area)}" placeholder="Ex.: 78" autocomplete="off">${er.area?`<div class="err">${esc(er.area)}</div>`:''}</div>
+  </div>
+  <div class="card">
+    <div class="row spread"><h2>Fotografias</h2><span class="chip">${ad.fotos.length}/${MAX_FOTOS}</span></div>
+    <div class="hint">JPEG ou PNG (e HEIC, se o telemóvel o permitir), com mínimo de 800×600 px. As fotografias são reduzidas automaticamente. Evite fotografar pessoas: os rostos não são desfocados nesta versão.</div>
+    <div class="grid2"><label class="btn" for="in-cam">Tirar foto</label><label class="btn" for="in-gal">Escolher da galeria</label></div>
+    <input id="in-cam" class="sr" type="file" accept="image/*" capture="environment">
+    <input id="in-gal" class="sr" type="file" accept="image/*,.jpg,.jpeg,.png,.heic,.gif" multiple>
+    ${errorsPanel()}
+    ${ad.fotos.length?`<div class="thumbs">${ad.fotos.map(f=>`<div class="thumb"><img src="${f.data}" alt="${esc(f.nome)}"><button data-act="rm-foto" data-id="${f.id}" aria-label="Remover ${esc(f.nome)}">×</button></div>`).join('')}</div>`:''}
+  </div>
+  <div class="card">
+    <h2>Notas da visita</h2>
+    <div class="field"><div class="row spread"><label for="f-notas">Notas</label><button class="btn small" data-act="ditar">Ditar nota</button></div><textarea id="f-notas" data-bind="notas" placeholder="Escreva ou dite o que reparou no imóvel…">${esc(ad.notas)}</textarea></div>
+    <div class="hint">Para ditar, toque no microfone do teclado do telemóvel. Moradas exatas são substituídas por uma referência genérica antes de qualquer envio à IA.</div>
+    <div class="row spread"><strong style="font-size:14px">Áudio anexo (MP3, M4A, WAV ou OGG, até 5 min)</strong><label class="btn small" for="in-aud">Carregar áudio</label></div>
+    <input id="in-aud" class="sr" type="file" accept="audio/*,video/mp4,.m4a,.mp3,.wav,.ogg,.flac">
+    ${V.audioErr?`<div class="banner bad" role="alert"><div><strong>${esc(V.audioErr.nome)}</strong>: ${esc(V.audioErr.motivo)}</div><button class="x" data-act="close-audio-err">Fechar</button></div>`:''}
+    ${ad.audio?`<div class="field"><div class="row spread"><span class="hint">${esc(ad.audio.nome)} · ${fmtDur(ad.audio.dur)}</span><button class="btn small" data-act="rm-audio">Remover</button></div><audio controls src="${ad.audio.data}"></audio></div>`:''}
+    <div class="hint">A transcrição automática de ficheiros de áudio não está disponível neste ambiente: o áudio fica anexado ao anúncio. Para passar a voz a texto, dite com o teclado.</div>
+  </div>
+  <button class="btn primary block" data-act="gerar">Gerar anúncio</button>
+  <button class="btn danger block" data-act="del">Apagar anúncio</button>`;
+}
+function errorBox(ad){
+  const e = ad.erro; if (!e) return '';
+  if (ad.regenPend && !e.passo.startsWith('Extração')) ad.regenPend = null;
+  return `<div class="banner bad" role="alert"><div><strong>${esc(e.passo)}</strong><div>${esc(e.msg)}</div>${e.detalhe?`<div class="hint" style="color:inherit;opacity:.85">Erro: ${esc(e.detalhe)}</div>`:''}<div class="hint" style="color:inherit">O anúncio está guardado como Rascunho; nada se perdeu.</div><div class="row" style="margin-top:8px"><button class="btn small" data-act="retry">Tentar de novo</button><button class="btn small" data-act="manual">Escrever manualmente</button>${e.passo.startsWith('Extração')?`<button class="btn small" data-act="only-notes">Continuar apenas com as notas</button>`:''}</div></div><button class="x" data-act="close-erro">Fechar</button></div>`;
+}
+function step2(ad){
+  if (!ad.gerado && !ad.caracteristicas.length && !ad.extraido){
+    return `<div class="card"><h2>Características</h2><div class="hint">Ainda não há características. Volte à etapa Dados e toque em «Gerar anúncio», ou adicione características à mão.</div></div>${addFeatCard()}`;
+  }
+  const vis = ad.caracteristicas;
+  const aviso = ad.extraido && !vis.some(c=>c.origem==='ia') ? `<div class="banner warn">Confiança visual insuficiente: nenhuma característica atingiu ${LIMIAR}%. Pode preencher à mão ou substituir as fotografias.</div>` : '';
+  const ocultas = ad.ocultas ? `<div class="hint">${ad.ocultas} sugest${ad.ocultas===1?'ão':'ões'} abaixo de ${LIMIAR}% de confiança ${ad.ocultas===1?'foi ocultada':'foram ocultadas'}.</div>` : '';
+  const erro = ad.erro ? errorBox(ad) : '';
+  const cards = vis.map(c => `<div class="feat ${c.decisao==='rejeitada'?'rej':''}" data-fid="${c.id}">
+    <div class="row spread"><span class="nm">${esc(c.nome)}</span><span class="chip ${c.decisao==='aprovada'?'ok':c.decisao==='rejeitada'?'bad':''}">${c.decisao==='aprovada'?'Aprovada':c.decisao==='rejeitada'?'Rejeitada':'Por decidir'}</span></div>
+    ${c.origem==='ia'?`<div class="row" style="gap:8px"><div class="bar-conf" style="flex:1"><i style="width:${c.confianca}%"></i></div><span class="hint">${c.confianca}%${c.foto?` · foto ${c.foto}`:''}</span></div>`:`<div class="hint">Acrescentada por si</div>`}
+    <div class="row"><button class="btn small" data-act="f-ok" data-id="${c.id}">Aprovar</button><button class="btn small" data-act="f-edit" data-id="${c.id}">Editar</button><button class="btn small danger" data-act="f-no" data-id="${c.id}">Rejeitar</button></div></div>`).join('');
+  const pend = vis.filter(c=>!c.decisao).length;
+  const conf = (ad.confNotas === 'ok') ? `<div class="card" id="conf-card"><div class="row spread"><h2>Conferência das notas com as fotografias</h2>${(ad.discrepancias||[]).some(d=>!d.decisao)?'<span class="chip warn">Por resolver</span>':'<span class="chip ok">Resolvida</span>'}</div>
+    <div class="hint">${(ad.discrepancias||[]).length ? 'Estas afirmações das suas notas não batem com o que as fotografias mostram. Decida cada uma antes de gerar o texto.' : 'As suas notas batem certo com as fotografias.'}</div>${discCards(ad)}
+    <div class="field"><label for="s2-notas">Notas da visita</label><textarea id="s2-notas" data-bind="notas" style="min-height:90px">${esc(ad.notas)}</textarea></div>
+    <div class="row"><button class="btn small" data-act="conf-run">Conferir de novo</button><button class="btn small" data-act="add-foto">Adicionar foto</button></div></div>` : '';
+  const abrir = (ad.discrepancias||[]).some(d=>!d.decisao) && ad.confNotas==='ok';
+  const rotulo = abrir ? 'Resolva as afirmações por resolver para continuar' : (ad.fotos.length && String(ad.notas||'').trim() && approved(ad).length && ad.confNotas!=='ok' ? 'Conferir as notas e continuar' : 'Gerar a proposta');
+  return `${erro}${aviso}<div class="card"><h2>Características sugeridas</h2><div class="hint">Só aparecem sugestões com ${LIMIAR}% ou mais. Só as aprovadas entram no texto e na exportação.</div>${ocultas}${cards || '<div class="hint">Sem características por mostrar.</div>'}</div>${addFeatCard()}${conf}
+  <button class="btn primary block" data-act="to-proposta" ${abrir?'disabled':''}>${rotulo}${pend?` (${pend} por decidir serão ignoradas)`:''}</button>`;
+}
+const addFeatCard = () => `<div class="card"><h2>Acrescentar característica</h2><div class="field"><label class="sr" for="f-new">Nova característica</label><input id="f-new" type="text" placeholder="Ex.: piso em madeira" autocomplete="off"></div><button class="btn" data-act="f-add">Acrescentar</button></div>`;
+function step3(ad){
+  const erro = ad.erro ? errorBox(ad) : '';
+  return `${erro}
+  <div class="card">
+    <div class="field"><label for="p-tit">Título</label><input id="p-tit" type="text" data-bind="titulo" data-edit="1" value="${esc(ad.titulo)}"></div>
+    <div class="field"><label for="p-desc">Descrição</label><textarea id="p-desc" data-bind="descricao" data-edit="1" style="min-height:190px">${esc(ad.descricao)}</textarea></div>
+    <div class="field"><label for="p-preco">Preço (€)</label><input id="p-preco" type="text" inputmode="numeric" data-bind="preco" data-price="1" value="${esc(ad.preco)}" placeholder="Indique o preço">
+      ${ad.precoNota?`<div class="hint"><strong>Estimativa de apoio, a confirmar pelo agente.</strong> ${esc(ad.precoNota)}</div>`:'<div class="hint">O preço é decidido pelo agente.</div>'}</div>
+  </div>
+  <div class="card"><div class="field"><label for="p-notas">Notas da visita</label><textarea id="p-notas" data-bind="notas" style="min-height:90px">${esc(ad.notas)}</textarea></div><div class="hint">A verificação de coerência parte destas notas e do texto, e confronta-os com as fotografias. Se as alterar, a coerência volta a Pendente.</div></div>
+  <div id="regen"></div>
+  <div id="coh"></div>
+  <div id="stg"></div>
+  <div id="savebox"></div>`;
+}
+function discCards(ad){
+  return (ad.discrepancias||[]).map(d => `<div class="disc ${d.decisao?'done':''}">
+    <div class="row spread"><strong>${esc(d.afirmacao)}</strong>${d.decisao?`<span class="chip ${d.decisao==='descartada'?'warn':'ok'}">${d.decisao==='mantida'?'Alterações mantidas':d.decisao==='alterada'?'Alterada por si':'Descartada (assumida por si)'}</span>`:'<span class="chip warn">Por resolver</span>'}</div>
+    <div class="hint">${esc(d.motivo)}</div>
+    ${d.trechoNotas?`<div class="hint">Nas suas notas: <del>${esc(d.trechoNotas)}</del> <ins>${d.sugestao?esc(d.sugestao):'(remover)'}</ins></div>`:''}
+    ${d.trecho?`<div class="hint">No texto: <del>${esc(d.trecho)}</del> <ins>${d.sugestao?esc(d.sugestao):'(remover)'}</ins></div>`:''}
+    ${!d.trecho && !d.trechoNotas?'<div class="hint">Não foi possível localizar o excerto: use «Alterar» para o corrigir à mão.</div>':''}
+    ${d.decisao?`<div class="row"><button class="btn small" data-act="d-reopen" data-id="${d.id}">Alterar decisão</button></div>`:(d.editando?`<div class="field"><label for="de-${d.id}">Substituir por (deixe vazio para remover)</label><input id="de-${d.id}" type="text" data-dedit="${d.id}" value="${esc(d.edicao ?? d.sugestao ?? '')}" autocomplete="off"></div><div class="row"><button class="btn small primary" data-act="d-apply" data-id="${d.id}">Aplicar</button><button class="btn small" data-act="d-cancel" data-id="${d.id}">Cancelar</button><button class="btn small" data-act="d-drop" data-id="${d.id}">Descartar</button></div>`
+      : d.manual ? `<div class="hint">Corrija o texto no campo de notas indicado e confirme.</div><div class="row"><button class="btn small primary" data-act="d-done" data-id="${d.id}">Já corrigi</button><button class="btn small" data-act="d-cancel" data-id="${d.id}">Cancelar</button><button class="btn small" data-act="d-drop" data-id="${d.id}">Descartar</button></div>`
+      : `<div class="row"><button class="btn small" data-act="d-keep" data-id="${d.id}" ${(d.trecho||d.trechoNotas)?'':'disabled'}>Manter alterações</button><button class="btn small" data-act="d-edit" data-id="${d.id}">Alterar</button><button class="btn small" data-act="d-drop" data-id="${d.id}">Descartar</button></div>`)}
+  </div>`).join('');
+}
+
+function refreshStaging(){
+  const host = $('#stg'); const ad = curAd(); if (!host || !ad) return;
+  V.stg = V.stg || { fotoId:null, estilo:'Moderno', extra:'', preview:null, busy:false };
+  const g = V.stg; if (!ad.fotos.find(f => f.id === g.fotoId)) g.fotoId = ad.fotos[0] ? ad.fotos[0].id : null;
+  const lim = canStage(ad);
+  const decs = (ad.decoradas||[]).map(d => `<div class="thumb" title="${esc(d.estilo)}"><img src="${d.data}" alt="Imagem decorada virtualmente (${esc(d.estilo)})"><button data-act="stg-rm" data-id="${d.id}" aria-label="Remover imagem decorada">×</button></div>`).join('');
+  const pick = ad.fotos.map(f => `<button class="thumb" data-act="stg-pick" data-id="${f.id}" style="border:3px solid ${f.id===g.fotoId?'var(--accent)':'transparent'};padding:0;cursor:pointer" aria-label="Escolher ${esc(f.nome)}" aria-pressed="${f.id===g.fotoId}"><img src="${f.data}" alt=""></button>`).join('');
+  const prev = g.preview ? `<div class="field"><strong>Pré-visualização (${esc(g.preview.estilo)})</strong><img src="${g.preview.data}" alt="Pré-visualização do Virtual Staging" style="width:100%;border-radius:12px">${g.preview.modoLocal?'<div class="hint">Modo local: peças genéricas, porque a IA não respondeu.</div>':''}<div class="row"><button class="btn small primary" data-act="stg-ok">Aprovar</button><button class="btn small" data-act="stg-no">Descartar</button></div></div>` : '';
+  host.innerHTML = `<div class="card"><div class="row spread"><h2>Virtual Staging (opcional)</h2><span class="chip">${ad.stagingTentativas||0}/${STG_MAX_TENT} tentativas</span></div>
+    <div class="hint">A IA indica onde há espaço livre e a app desenha o mobiliário no estilo escolhido. É uma pré-visualização esquemática, não uma fotografia gerada. Toda a imagem decorada fica identificada como «${STG_LABEL}» e assim é exportada.</div>
+    ${ad.fotos.length?`<div class="thumbs">${pick}</div>
+    <div class="field"><label for="stg-estilo">Estilo</label><select id="stg-estilo" data-stg="estilo">${STG_ESTILOS.map(e=>`<option ${e===g.estilo?'selected':''}>${e}</option>`).join('')}</select></div>
+    <div class="field"><label for="stg-extra">Instruções adicionais (opcional)</label><input id="stg-extra" type="text" data-stg="extra" value="${esc(g.extra)}" placeholder="Ex.: sofá cinzento, muita planta" autocomplete="off"></div>
+    ${lim.ok?'':`<div class="banner warn">${esc(lim.motivo)}</div>`}
+    ${g.erro?`<div class="banner bad" role="alert"><div>${esc(g.erro)}</div></div>`:''}
+    <button class="btn primary block" data-act="stg-gerar" ${lim.ok && !g.busy && !g.preview?'':'disabled'}>${g.busy?'A decorar…':'Gerar decoração'}</button>
+    ${prev}${!g.preview && g.descartada ? '<div class="banner info"><div>Decoração descartada.</div><button class="x" data-act="stg-undo">Desfazer descarte</button></div>' : ''}`:`<div class="banner warn">${esc(lim.motivo)}</div>`}
+    ${decs?`<div><strong>Imagens decoradas aprovadas (${ad.decoradas.length}/${STG_MAX_DECORADAS})</strong><div class="thumbs" style="margin-top:8px">${decs}</div></div>`:''}
+  </div>`;
+}
+async function gerarStaging(ad){
+  const g = V.stg; const foto = ad.fotos.find(f => f.id === g.fotoId); if (!foto) return;
+  const lim = canStage(ad); if (!lim.ok){ g.erro = lim.motivo; refreshStaging(); return; }
+  g.erro = null; g.descartada = null; g.busy = true; refreshStaging(); showLoading('A decorar a divisão…');
+  let plan, modoLocal = false;
+  try { plan = await aiStaging(foto, g.estilo, g.extra); }
+  catch(e){ plan = localStagingPlan(); modoLocal = true; toast('Virtual Staging em modo local: a IA não respondeu.'); }
+  ad.stagingTentativas = (ad.stagingTentativas||0) + 1;
+  if (!plan.pecas.length){ g.busy = false; hideLoading(); g.erro = 'A IA não encontrou espaço livre nesta divisão. Escolha outra fotografia ou outro estilo. A tentativa foi contada.'; touch(ad); refreshStaging(); return; }
+  try { const data = await renderStaging(foto.data, plan, g.estilo); g.preview = { data, fotoId: foto.id, estilo: g.estilo, modoLocal }; }
+  catch(e){ g.erro = 'Não foi possível desenhar a decoração nesta imagem.'; }
+  g.busy = false; hideLoading(); touch(ad); refreshStaging();
+}
+function refreshRegen(){
+  const host = $('#regen'); const ad = curAd(); if (!host || !ad) return;
+  V.regen = V.regen || { instr:'', alvo:{titulo:true, descricao:true}, nova:null, erro:null };
+  const r = V.regen;
+  const n = r.nova ? (r.nova.discrepancias||[]).filter(d => !d.decisao).length : 0;
+  const cmp = r.nova ? `<div class="field"><strong>Versão atual</strong><div class="preview" style="max-height:none">${esc(ad.titulo)}\n\n${esc(ad.descricao)}</div></div>
+    <div class="field"><strong>Nova versão</strong><div class="preview" style="max-height:none;border-style:solid;border-color:var(--accent)">${esc(r.nova.alvo.titulo ? r.nova.titulo : ad.titulo)}\n\n${esc(r.nova.alvo.descricao ? r.nova.descricao : ad.descricao)}</div></div>
+    <div class="banner ${n?'warn':'ok'}">${n?`A nova versão tem ${n} afirmação${n===1?'':'ões'} sem suporte nas fotografias. Se a aceitar, tem de a resolver na verificação de coerência.`:'A nova versão não tem discrepâncias de coerência.'}</div>
+    <div class="row"><button class="btn small primary" data-act="rg-ok">Aceitar nova versão</button><button class="btn small" data-act="rg-no">Manter a atual</button></div>
+    <div class="hint">Ao aceitar, o anúncio volta a Rascunho e tem de confirmar de novo que o reviu.</div>` : '';
+  host.innerHTML = `<div class="card"><h2>Regenerar com IA</h2>
+    <div class="hint">Peça uma nova versão do texto. A versão atual só é substituída se aceitar.</div>
+    <div class="field"><label for="rg-instr">Instruções (opcional)</label><input id="rg-instr" type="text" data-rg="instr" value="${esc(r.instr||'')}" placeholder="Ex.: tom mais formal, destacar a luz natural" autocomplete="off"></div>
+    <div class="row"><label class="checkline"><input type="checkbox" data-rg="titulo" ${r.alvo.titulo?'checked':''}> Título</label><label class="checkline"><input type="checkbox" data-rg="descricao" ${r.alvo.descricao?'checked':''}> Descrição</label></div>
+    ${r.erro?`<div class="banner bad" role="alert"><div>${esc(r.erro)}</div></div>`:''}
+    <button class="btn block" data-act="rg-run" ${r.nova?'disabled':''}>Regenerar com IA</button>${cmp}
+    ${!r.nova && r.descartada ? '<div class="banner info"><div>Nova versão descartada.</div><button class="x" data-act="rg-undo">Desfazer</button></div>' : ''}
+    ${!r.nova && ad.versaoAnterior ? '<div class="banner ok"><div>Nova versão aceite.</div><button class="x" data-act="rg-repor">Repor versão anterior</button></div>' : ''}</div>`;
+}
+function refreshStep3(){
+  const ad = curAd(); if (!ad) return;
+  const coh = coherenceOf(ad);
+  const exp = ad.exportacoes.length ? `<div class="card"><h2>Histórico de exportações</h2>${ad.exportacoes.slice().reverse().map(x=>`<div class="log"><strong>${esc(x.canal)}</strong><span>${fmtDate(x.data)} · ${esc(x.resultado)}</span></div>`).join('')}</div>` : '';
+  const discs = discCards(ad);
+  let msg = '';
+  if (coh === 'Não aplicável') msg = 'O anúncio não tem fotografias, por isso a coerência não se aplica. Fica em Rascunho e não pode ser exportado.';
+  else if (!ad.coerenciaVerificada) msg = 'A coerência ainda não foi verificada com as notas e o texto atuais. Toque em «Verificar coerência».';
+  else if (approved(ad).length === 0) msg = 'Sem características aprovadas a partir das fotografias, a coerência fica Pendente.';
+  else if (coh === 'Pendente') msg = 'Há discrepâncias por resolver. O botão Exportar fica desativado até resolver todas.';
+  else msg = 'Sem discrepâncias por resolver.';
+  $('#coh').innerHTML = `<div class="card"><div class="row spread"><h2>Coerência texto ↔ fotografias</h2>${chipCoer(coh)}</div><div class="hint">${esc(msg)}</div>${discs}
+    <div class="row"><button class="btn small" data-act="coh-run">Verificar coerência</button><button class="btn small" data-act="add-foto">Adicionar foto</button></div></div>${exp}`;
+  refreshRegen(); refreshStaging();
+  const falta = missingForConcluido(ad);
+  const est = ad.estado;
+  const podeExp = (est === 'Concluído' || est === 'Publicado') && coh !== 'Pendente';
+  $('#savebox').innerHTML = `<div class="card">
+    <label class="checkline"><input type="checkbox" id="p-rev" ${ad.revisado?'checked':''}> Revi o anúncio e confirmo o texto, o preço e as características.</label>
+    ${falta.length?`<div class="hint">Para ficar Concluído falta: ${esc(falta.join(', '))}.</div>`:`<div class="hint">Tudo pronto para ficar Concluído.</div>`}
+    <div class="row">${chipEstado(est)}</div>
+    <button class="btn primary block" data-act="guardar">Guardar</button>
+    <button class="btn block" data-act="exportar" ${podeExp?'':'disabled'}>Exportar</button>
+    ${!podeExp?`<div class="hint">A exportação só fica disponível com o anúncio Concluído e a coerência resolvida.</div>`:''}
+  </div>`;
+}
+
+/* ----- Definições e Notas ----- */
+function settingsBody(){
+  const logs = S.logs.length ? S.logs.map(l=>`<div class="log"><div class="row spread"><strong>${esc(l.tipo)}</strong><span class="chip ${l.estado==='sucesso'?'ok':'bad'}">${esc(l.estado)}</span></div><span class="hint">${fmtDate(l.data)}${l.erro?` · ${esc(l.erro)}`:''}</span></div>`).join('') : '<div class="hint">Ainda não houve chamadas à IA.</div>';
+  return `<div class="card"><h2>Estado da IA</h2><div id="ai-status" class="hint">${V.aiStatus ? esc(V.aiStatus) : 'Ainda não testada nesta sessão.'}</div><button class="btn" data-act="ai-test">Testar ligação à IA</button><div class="hint">A primeira chamada pede a sua autorização. Cada pedido tem um limite de 15 segundos.</div></div>
+  <div class="card"><h2>Registo de chamadas à IA</h2>${logs}</div>
+  <div class="card"><h2>Dados</h2><div class="hint">Os anúncios e as fotografias ficam guardados neste dispositivo, neste navegador.</div><button class="btn danger" data-act="wipe">Apagar todos os anúncios</button></div>`;
+}
+function notesBody(){
+  const hyp = [
+    'H1 — A IA é real: o ambiente liga a PropSell ao Claude para analisar fotografias, escrever o texto e validar a coerência.',
+    'H2 — O preço é uma estimativa de apoio da IA, com base em tipologia, área e localização, sem dados de mercado atuais; é sempre editável e a decisão final é do agente.',
+    'H3 — O certificado energético e a licença de utilização são pedidos na exportação, porque a criação não os recolhe. Só são exigidos para portais.',
+    'H4 — «Manter alterações» aplica a correção sugerida; «Descartar» recusa-a e regista a afirmação como assumida pelo agente (UC-01 FA2).',
+    'H5 — Uma coerência «Validada» exige verificação com o texto atual e nenhuma discrepância por resolver.',
+    'H6 — Sem fotografias a coerência é «Não aplicável» e o anúncio nunca fica Concluído nem exportável.',
+    'H8 — Regenerar com IA (UC-01 FA5): a nova versão aparece ao lado da atual e só a substitui se aceitar; ao aceitar o anúncio volta a Rascunho e exige nova revisão. Se as fotografias ou as características mudaram, a extração corre primeiro.',
+    'H7 — Virtual Staging: máximo de 20 imagens decoradas e 10 tentativas por anúncio (RN05 do UC-01). A decoração é uma pré-visualização esquemática, não uma imagem gerada por IA.'];
+  const lim = [
+    'Não há transcrição automática de ficheiros de áudio: o áudio é validado e anexado, e a nota passa a texto por escrita ou ditado (microfone do teclado no telemóvel; ditado do sistema no computador, por exemplo Win+H).',
+    'A câmara abre o seletor de fotografias do dispositivo. Não há gravação de microfone dentro da app. As fotografias são reduzidas automaticamente, sem limite de tamanho do ficheiro.',
+    'Os rostos nas fotografias não são desfocados antes do envio à IA. Evite fotografar pessoas.',
+    'Virtual Staging: a IA só consegue indicar zonas livres; a app desenha o mobiliário. Uma decoração fotorrealista exigiria um modelo de geração de imagem, que este ambiente não oferece.',
+    'Não há publicação automática em portais e redes sociais: copia-se o texto, descarregam-se as imagens e confirma-se «Já publiquei neste canal».',
+    'O PDF e o ficheiro de imagens exigem a sua confirmação ao guardar.',
+    'Os dados ficam só neste navegador; limpar os dados do site apaga os anúncios.'];
+  const res = V.tests ? V.tests.map(t => `<div class="test-row"><span class="chip ${t.r==='Passou'?'ok':t.r==='Falhou'?'bad':'warn'}" style="min-width:74px;justify-content:center">${esc(t.r)}</span><div><strong>${esc(t.id)}</strong> ${esc(t.d)}${t.n?`<div class="hint">${esc(t.n)}</div>`:''}</div></div>`).join('') : '<div class="hint">Ainda não executada.</div>';
+  return `<div class="card"><h2>Hipóteses assumidas</h2><ul style="margin:0;padding-left:18px">${hyp.map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div>
+  <div class="card"><h2>Limitações conhecidas</h2><ul style="margin:0;padding-left:18px">${lim.map(h=>`<li>${esc(h)}</li>`).join('')}</ul></div>
+  <div class="card"><h2>Verificação CA01–CA13</h2><div class="hint">Corre testes automáticos sobre as regras da app, com dados internos que não aparecem na interface. O que depende de uma resposta real da IA fica «Por validar manualmente».</div><button class="btn primary" data-act="run-tests">Executar verificação</button>${res}</div>`;
+}
+
+/* ----- Exportação ----- */
+function screenExport(){
+  const ad = curAd(); if (!ad){ V.name='list'; return screenTab(); }
+  const e = V.exp;
+  let body = '';
+  if (e.stage === 'setup'){
+    const sel = ad.canaisSel;
+    body = `<div class="card"><h2>Canais</h2>${CANAIS.map(c=>`<label class="checkline"><input type="checkbox" data-canal="${c.id}" ${sel.includes(c.id)?'checked':''}> ${esc(c.nome)} <span class="chip">${c.tipo==='portal'?'portal':c.tipo==='rede'?'rede social':'ficheiro'}</span></label>`).join('')}</div>
+    <div class="card"><h2>Dados legais (portais)</h2>
+      <div class="field"><label for="x-cert">Certificado energético</label><select id="x-cert" data-legal="certificado"><option value="">Selecione…</option>${['A+','A','B','B-','C','D','E','F'].map(c=>`<option ${ad.legal.certificado===c?'selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="field"><label for="x-lic">Licença de utilização</label><input id="x-lic" type="text" data-legal="licenca" value="${esc(ad.legal.licenca)}" placeholder="N.º da licença" ${ad.legal.isento?'disabled':''}></div>
+      <label class="checkline"><input type="checkbox" data-legal-check="isento" ${ad.legal.isento?'checked':''}> Isento (tenho certidão de isenção)</label></div>
+    ${e.blockers && e.blockers.length ? `<div class="banner bad" role="alert"><div><strong>Exportação bloqueada</strong><ul style="margin:6px 0 0;padding-left:18px">${e.blockers.map(b=>`<li>${esc(b)}</li>`).join('')}</ul></div></div>`:''}
+    <button class="btn primary block" data-act="x-validate">Validar e pré-visualizar</button>`;
+  } else {
+    const canais = CANAIS.filter(c => ad.canaisSel.includes(c.id));
+    body = `<div class="banner info">A publicação automática nos portais e redes sociais não está integrada nesta versão. Copie o texto, descarregue as imagens, publique no canal e confirme aqui.</div>
+    <div class="card"><label class="checkline"><input type="checkbox" id="x-confirm" ${e.confirmado?'checked':''}> Revi esta pré-visualização e autorizo a exportação.</label></div>
+    ${canais.map(c => channelCard(ad, c, e)).join('')}
+    <button class="btn block" data-act="x-back">Voltar à seleção de canais</button>`;
+  }
+  return header('Exportar', ad.titulo || 'Anúncio', true) + `<main id="main">${body}</main>`;
+}
+function channelText(ad, c){
+  const preco = parseArea(ad.preco) > 0 ? fmtEUR(parseArea(ad.preco)) : '';
+  const ficha = `${ad.tipologia} · ${parseArea(ad.area).toLocaleString('pt-PT')} m²${ad.localizacao?` · ${ad.localizacao}`:''}${preco?` · ${preco}`:''}`;
+  const staging = '';
+  const nota = (ad.decoradas||[]).length ? `\n\nNota: ${(ad.decoradas||[]).length} imagem(ns) foram decoradas virtualmente e estão identificadas como tal.` : '';
+  if (c.tipo === 'portal') return `${ad.titulo}\n\n${ficha}\n\n${ad.descricao}${nota}`;
+  const lim = c.id === 'instagram' ? 600 : 900;
+  let d = ad.descricao.replace(/\s+/g,' ').trim(); if (d.length > lim) d = d.slice(0, lim-1).replace(/\s+\S*$/,'') + '…';
+  return `${ad.titulo}\n${ficha}\n\n${d}${nota}`;
+}
+function channelCard(ad, c, e){
+  const conf = ad.canaisConfirmados[c.id];
+  const dis = e.confirmado ? '' : 'disabled';
+  if (c.tipo === 'pdf') return `<div class="card"><div class="row spread"><h2>${esc(c.nome)}</h2>${e.pdfOk?'<span class="chip ok">Gerado</span>':''}</div><div class="hint">Título, descrição, preço, características e fotografias. Gerar só o PDF não altera o estado do anúncio.</div><button class="btn" data-act="x-pdf" ${dis}>Gerar e descarregar PDF</button></div>`;
+  return `<div class="card"><div class="row spread"><h2>${esc(c.nome)}</h2>${conf?'<span class="chip ok">Publicado</span>':'<span class="chip">Por confirmar</span>'}</div>
+    <div class="preview">${esc(channelText(ad, c))}</div>
+    <div class="grid2"><button class="btn small" data-act="x-copy" data-c="${c.id}" ${dis}>Copiar texto</button><button class="btn small" data-act="x-imgs" ${dis} ${ad.fotos.length?'':'disabled'}>Descarregar imagens${(ad.decoradas||[]).length?` (+${ad.decoradas.length} decoradas)`:''}</button></div>
+    <button class="btn ${conf?'':'primary'}" data-act="x-pub" data-c="${c.id}" ${dis}>${conf?'Publicação confirmada ✓ (anular)':'Já publiquei neste canal'}</button></div>`;
+}
+
+/* ---------- Ações ---------- */
+function go(name, extra){ Object.assign(V, {name}, extra||{}); render(); }
+function openAd(id){ const ad = getAd(id); V.formErr = null; V.fileErrors = []; V.audioErr = null; go('edit', {adId:id, step: ad.gerado ? 3 : (ad.extraido ? 2 : 1)}); }
+function ensureValidStep(ad){ if (V.step === 3 && !ad.titulo && !ad.descricao) V.step = 2; }
+
+async function addFotos(files){
+  const ad = curAd(); if (!ad) return;
+  const erros = [];
+  let added = 0;
+  for (const f of files){
+    if (ad.fotos.length >= MAX_FOTOS){ erros.push({nome:f.name, motivo:`Limite de ${MAX_FOTOS} fotografias atingido.`}); continue; }
+    const r = await processImage(f);
+    if (r.ok){ ad.fotos.push(r.foto); added++; } else erros.push({nome:f.name, motivo:r.motivo});
+  }
+  if (added){ ad.confNotas = null; ad.coerenciaVerificada = false; if (ad.gerado) markEdited(ad); touch(ad); }
+  V.fileErrors = erros; render();
+  if (added) toast(`${added} fotografia${added===1?'':'s'} adicionada${added===1?'':'s'}.`);
+}
+async function addAudio(file){
+  const ad = curAd(); if (!ad) return;
+  const r = await processAudio(file);
+  if (r.ok){ ad.audio = r.audio; V.audioErr = null; touch(ad); toast('Nota de voz anexada.'); } else V.audioErr = {nome:file.name, motivo:r.motivo};
+  render();
+}
+async function gerar(){
+  const ad = curAd();
+  V.formErr = validateForm(ad);
+  if (Object.keys(V.formErr).length){ render(); const el = $('.field.invalid input'); if (el) el.focus(); return; }
+  ad.tipologia = ad.tipologia.trim();
+  ad.localizacao = sanitizeNotes(ad.localizacao).texto.trim();
+  const sn = sanitizeNotes(ad.notas);
+  if (sn.alterado){ ad.notas = sn.texto; toast('A morada exata foi substituída por «[zona omitida]». Indique a freguesia, se quiser.'); }
+  ad.erro = null; touch(ad);
+  if (!ad.fotos.length){
+    const ok = await dialog({title:'Sem fotografias', text:'Sem fotografias, a descrição é genérica, só com os dados quantitativos. O anúncio fica em Rascunho e não pode ser exportado até acrescentar fotografias.', ok:'Continuar sem fotografias', cancel:'Adicionar fotografias'});
+    if (!ok) return;
+    ad.caracteristicas = []; ad.ocultas = 0; ad.extraido = false; ad.discrepancias = [];
+    const g = localGenerate(ad); Object.assign(ad, g); ad.preco = ad.preco || ''; ad.precoNota = ''; ad.gerado = true; ad.modoLocal = false; ad.revisado = false; ad.coerenciaVerificada = true;
+    ad.estado = computeEstado(ad); touch(ad); V.step = 3; render(); return;
+  }
+  await runExtraction(ad);
+}
+async function runExtraction(ad){
+  if (!online()){ ad.fila = true; touch(ad); render(); toast('Sem ligação: pedido em fila.'); return; }
+  ad.fila = false; showLoading('A analisar fotografias…');
+  try {
+    const feats = await aiExtract(ad);
+    applyFeatures(ad, feats);
+    ad.erro = null; ad.modoLocal = false; touch(ad); hideLoading(); V.step = 2; render();
+  } catch(e){
+    hideLoading(); ad.erro = { passo:'Extração de características', msg: errMsg(e), detalhe: e.detail }; ad.estado = 'Rascunho'; touch(ad); render();
+  }
+}
+function applyFeatures(ad, feats){
+  const vis = visibleFeatures(feats);
+  ad.ocultas = feats.length - vis.length; ad.extraido = true; ad.gerado = ad.gerado || false;
+  ad.caracteristicas = ad.caracteristicas.filter(c => c.origem === 'manual').concat(vis.map(f => ({ id: uid(), nome: f.nome, confianca: Math.round(f.confianca), foto: f.foto, origem:'ia', decisao:null })));
+}
+async function runGenerate(ad){
+  ad.erro = null;
+  if (!online()){ ad.fila = 'gerar'; touch(ad); render(); toast('Sem ligação: pedido em fila.'); return; }
+  if (ad.regenPend){ const info = ad.regenPend; ad.regenPend = null; await gerarNova(ad, info.instrucoes, info.alvo); return; }
+  showLoading('A gerar texto…');
+  try {
+    const g = await aiGenerate(ad);
+    ad.versaoAnterior = null; Object.assign(ad, g); ad.gerado = true; ad.modoLocal = false; ad.sigGeracao = genSig(ad);
+  } catch(e){
+    hideLoading(); ad.erro = { passo:'Geração do anúncio', msg: errMsg(e), detalhe: e.detail }; ad.estado = 'Rascunho'; touch(ad); V.step = 2; render(); return;
+  }
+  setLoading('A validar coerência…');
+  const assumidas = new Set((ad.discrepancias||[]).filter(d => d.decisao === 'descartada').map(d => d.afirmacao.toLowerCase()));
+  try { ad.discrepancias = await aiCoherence(ad); ad.coerenciaVerificada = true; }
+  catch(e){ ad.discrepancias = localCoherence(ad); ad.coerenciaVerificada = true; toast('Coerência verificada em modo local: a IA não respondeu.'); }
+  ad.discrepancias.forEach(d => { if (assumidas.has(d.afirmacao.toLowerCase())) d.decisao = 'descartada'; });
+  ad.revisado = false; ad.estado = computeEstado(ad); ad.confNotas = null; ad.sigGeracao = genSig(ad); touch(ad); hideLoading(); V.step = 3; render();
+}
+async function gerarNova(ad, instrucoes, alvo){
+  const r = V.regen; r.erro = null; r.nova = null; r.descartada = null;
+  showLoading('A gerar nova versão…');
+  let g;
+  try { g = await aiGenerate(ad, instrucoes); }
+  catch(e){ hideLoading(); r.erro = `${errMsg(e)} O texto atual mantém-se.`; V.step = 3; render(); return; }
+  setLoading('A validar coerência da nova versão…');
+  const tmp = Object.assign({}, ad, { titulo: alvo.titulo ? g.titulo : ad.titulo, descricao: alvo.descricao ? g.descricao : ad.descricao });
+  const assumidas = new Set((ad.discrepancias||[]).filter(d => d.decisao === 'descartada').map(d => d.afirmacao.toLowerCase()));
+  let disc; try { disc = await aiCoherence(tmp); } catch(e){ disc = localCoherence(tmp); }
+  disc.forEach(d => { if (assumidas.has(d.afirmacao.toLowerCase())) d.decisao = 'descartada'; });
+  r.nova = { titulo: g.titulo, descricao: g.descricao, discrepancias: disc, alvo: Object.assign({}, alvo), instrucoes };
+  hideLoading(); V.step = 3; render();
+}
+async function regenerar(ad){
+  const r = V.regen; const alvo = r.alvo || {titulo:true, descricao:true};
+  if (!alvo.titulo && !alvo.descricao){ r.erro = 'Escolha o que regenerar: título, descrição ou ambos.'; refreshRegen(); return; }
+  if (!online()){ r.erro = 'Falha ao contactar o servidor. O texto atual mantém-se.'; refreshRegen(); return; }
+  if (ad.fotos.length && ad.sigGeracao && ad.sigGeracao !== genSig(ad)){
+    ad.regenPend = { instrucoes: r.instr || '', alvo: Object.assign({}, alvo) };
+    toast('As fotografias ou as características mudaram: a extração corre primeiro.'); await runExtraction(ad); return;
+  }
+  await gerarNova(ad, r.instr || '', alvo);
+}
+function manualGenerate(ad){
+  const g = localGenerate(ad); Object.assign(ad, g); ad.precoNota = ''; ad.gerado = true; ad.modoLocal = true; ad.erro = null;
+  const assumidas = new Set((ad.discrepancias||[]).filter(d => d.decisao === 'descartada').map(d => d.afirmacao.toLowerCase()));
+  ad.discrepancias = localCoherence(ad); ad.discrepancias.forEach(d => { if (assumidas.has(d.afirmacao.toLowerCase())) d.decisao = 'descartada'; });
+  ad.coerenciaVerificada = true; ad.revisado = false; ad.estado = computeEstado(ad); touch(ad); V.step = 3; render();
+  toast('Modo local: a IA não respondeu. Reveja o texto e o preço.');
+}
+async function runCoherence(ad, silent){
+  if (!silent) showLoading('A validar coerência…');
+  const assumidas = new Set((ad.discrepancias||[]).filter(d => d.decisao === 'descartada').map(d => d.afirmacao.toLowerCase()));
+  try { if (!online()) throw new AIError('rede','offline'); ad.discrepancias = await aiCoherence(ad); ad.modoLocal = false; }
+  catch(e){ ad.discrepancias = localCoherence(ad); if (!silent) toast('Coerência verificada em modo local: a IA não respondeu.'); }
+  ad.discrepancias.forEach(d => { if (assumidas.has(d.afirmacao.toLowerCase())) d.decisao = 'descartada'; });
+  ad.coerenciaVerificada = true; ad.estado = ad.estado === 'Publicado' ? 'Publicado' : computeEstado(ad); touch(ad); if (!silent) hideLoading();
+}
+// Fila: ao regressar a ligação, processa os pedidos pendentes
+window.addEventListener('online', async () => {
+  toast('Ligação reposta.');
+  for (const ad of S.ads.filter(a => a.fila)){
+    const wasGen = ad.fila === 'gerar'; ad.fila = false;
+    if (wasGen) await runGenerate(ad); else await runExtraction(ad);
+    toast('Pedido em fila processado.');
+  }
+  render();
+});
+window.addEventListener('offline', () => { toast('Sem ligação à internet.'); render(); });
+
+/* ---------- Eventos ---------- */
+document.addEventListener('click', async ev => {
+  const t = ev.target.closest('[data-act]'); if (!t) return;
+  const act = t.dataset.act; const ad = curAd();
+  switch(act){
+    case 'tab': V.tab = t.dataset.tab; V.name = 'list'; render(); break;
+    case 'new': { const n = newAd(); S.ads.push(n); touch(n); V.formErr=null; V.fileErrors=[]; V.audioErr=null; go('edit',{adId:n.id, step:1}); break; }
+    case 'open': openAd(t.dataset.id); break;
+    case 'back':
+      if (V.name === 'export'){ go('edit',{step:3}); break; }
+      if (V.name === 'edit' && ad && !ad.fotos.length && !ad.notas && !ad.tipologia && !ad.localizacao && !ad.area && !ad.gerado && !ad.audio){ S.ads = S.ads.filter(a=>a.id!==ad.id); saveSoon(); }
+      V.tab='list'; go('list'); break;
+    case 'step': { V.step = Number(t.dataset.n); render(); break; }
+    case 'cam': $('#in-cam').click(); break;
+    case 'gal': $('#in-gal').click(); break;
+    case 'aud': $('#in-aud').click(); break;
+    case 'ditar': { const el = $('#f-notas'); if (el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); } toast('Toque no microfone do teclado para ditar.'); break; }
+    case 'close-errors': V.fileErrors = []; render(); break;
+    case 'close-audio-err': V.audioErr = null; render(); break;
+    case 'close-erro': ad.erro = null; touch(ad); render(); break;
+    case 'rm-foto': ad.fotos = ad.fotos.filter(f=>f.id!==t.dataset.id); ad.confNotas = null; ad.coerenciaVerificada = false; if (ad.gerado) markEdited(ad); touch(ad); render(); break;
+    case 'rm-audio': ad.audio = null; touch(ad); render(); break;
+    case 'gerar': await gerar(); break;
+    case 'retry': if (ad.erro && ad.erro.passo.startsWith('Extração')) await runExtraction(ad); else await runGenerate(ad); break;
+    case 'manual': if (ad.erro && ad.erro.passo.startsWith('Extração')){ ad.erro = null; ad.extraido = true; touch(ad); V.step = 2; render(); } else manualGenerate(ad); break;
+    case 'only-notes': ad.erro = null; ad.extraido = true; touch(ad); await runGenerateOrLocal(ad); break;
+    case 'del': { const ok = await dialog({title:'Apagar anúncio', text:'Esta ação não pode ser desfeita.', ok:'Apagar', cancel:'Cancelar', danger:true}); if (ok){ S.ads = S.ads.filter(a=>a.id!==ad.id); saveSoon(); V.tab='list'; go('list'); toast('Anúncio apagado.'); } break; }
+    case 'f-ok': { const c = ad.caracteristicas.find(x=>x.id===t.dataset.id); c.decisao='aprovada'; featChanged(ad); break; }
+    case 'f-no': { const c = ad.caracteristicas.find(x=>x.id===t.dataset.id); c.decisao='rejeitada'; featChanged(ad); break; }
+    case 'f-edit': { const c = ad.caracteristicas.find(x=>x.id===t.dataset.id); const el = document.createElement('div'); el.className='overlay';
+      el.innerHTML = `<div class="dialog"><h3>Editar característica</h3><div class="field"><label for="ed-n">Nome</label><input id="ed-n" type="text" value="${esc(c.nome)}"></div><div class="row" style="justify-content:flex-end"><button class="btn" data-r="0">Cancelar</button><button class="btn primary" data-r="1">Guardar e aprovar</button></div></div>`;
+      el.addEventListener('click', e2 => { const b = e2.target.closest('[data-r]'); if (!b) return; if (b.dataset.r==='1'){ const v = $('#ed-n').value.trim(); if (!v) return; c.nome = v; c.decisao='aprovada'; featChanged(ad); } el.remove(); });
+      $('#overlay-host').appendChild(el); $('#ed-n').focus(); break; }
+    case 'f-add': { const i = $('#f-new'); const v = i.value.trim(); if (!v){ toast('Escreva o nome da característica.'); i.focus(); break; } ad.caracteristicas.push({id:uid(), nome:v.toLowerCase(), confianca:100, origem:'manual', decisao:'aprovada'}); ad.extraido = true; featChanged(ad); break; }
+    case 'to-proposta': await conferirEGerar(ad); break;
+    case 'conf-run': ad.confNotas = null; await conferirNotas(ad); render(); break;
+    case 'd-keep': { const d = ad.discrepancias.find(x=>x.id===t.dataset.id); applyDisc(ad, d, d.sugestao); d.decisao='mantida'; discChanged(ad); break; }
+    case 'd-drop': { const d = ad.discrepancias.find(x=>x.id===t.dataset.id); d.editando = false; d.manual = false; d.decisao='descartada'; discChanged(ad); break; }
+    case 'd-edit': { const d = ad.discrepancias.find(x=>x.id===t.dataset.id);
+      if (d.trecho || d.trechoNotas){ d.editando = true; d.manual = false; d.edicao = d.sugestao || ''; rerenderDisc(ad); const el = document.querySelector(`[data-dedit="${d.id}"]`); if (el){ el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }
+      else { d.manual = true; d.editando = false; rerenderDisc(ad); const el = $(V.step === 2 ? '#s2-notas' : '#p-notas'); if (el){ el.scrollIntoView({block:'center'}); el.focus(); } }
+      break; }
+    case 'd-apply': { const d = ad.discrepancias.find(x=>x.id===t.dataset.id); const novo = String(d.edicao ?? '').trim(); applyDisc(ad, d, novo); d.sugestao = novo; d.editando = false; d.decisao = 'alterada'; discChanged(ad); toast('Alteração aplicada ao texto e às notas.'); break; }
+    case 'd-reopen': { const d = ad.discrepancias.find(x=>x.id===t.dataset.id); let aviso = false;
+      if (d.snap){ for (const f of ['titulo','descricao','notas']){ if (ad[f] === d.snap.after[f]) ad[f] = d.snap.before[f]; else if (ad[f] !== d.snap.before[f]) aviso = true; } }
+      d.snap = null; d.decisao = null; d.editando = false; d.manual = false; ad.revisado = false; ad.estado = computeEstado(ad); touch(ad); rerenderDisc(ad);
+      toast(aviso ? 'Decisão reaberta. O texto mudou depois desta decisão: confirme-o à mão.' : 'Decisão reaberta. Pode escolher outra vez.'); break; }
+    case 'd-cancel': { const d = ad.discrepancias.find(x=>x.id===t.dataset.id); d.editando = false; d.manual = false; rerenderDisc(ad); break; }
+    case 'd-done': { const d = ad.discrepancias.find(x=>x.id===t.dataset.id); d.manual = false; d.decisao = 'alterada'; discChanged(ad); break; }
+    case 'coh-run': await runCoherence(ad); refreshStep3(); toast('Coerência verificada.'); break;
+    case 'add-foto': V.step = 1; render(); toast('Adicione fotografias e volte a gerar.'); break;
+    case 'rg-run': await regenerar(ad); break;
+    case 'rg-ok': { const r = V.regen; if (r && r.nova){ applyRegeneracao(ad, r.nova, r.nova.alvo); r.nova = null; r.erro = null; touch(ad); render(); toast('Nova versão aceite. Confirme de novo que reviu o anúncio.'); } break; }
+    case 'rg-no': { V.regen.descartada = V.regen.nova; V.regen.nova = null; refreshRegen(); toast('Mantida a versão atual. Pode desfazer.'); break; }
+    case 'rg-undo': { V.regen.nova = V.regen.descartada; V.regen.descartada = null; refreshRegen(); break; }
+    case 'rg-repor': { const v = ad.versaoAnterior; if (v){ ad.titulo = v.titulo; ad.descricao = v.descricao; ad.discrepancias = v.discrepancias; ad.coerenciaVerificada = v.coerenciaVerificada; ad.revisado = false; ad.sigGeracao = v.sigGeracao; ad.versaoAnterior = null; ad.estado = computeEstado(ad); touch(ad); render(); toast('Versão anterior reposta. Confirme de novo que reviu o anúncio.'); } break; }
+    case 'stg-pick': V.stg.fotoId = t.dataset.id; V.stg.preview = null; V.stg.descartada = null; V.stg.erro = null; refreshStaging(); break;
+    case 'stg-gerar': await gerarStaging(ad); break;
+    case 'stg-ok': { const g = V.stg; if (g.preview){ ad.decoradas.push({ id: uid(), origemId: g.preview.fotoId, estilo: g.preview.estilo, data: g.preview.data }); g.preview = null; ad.revisado = false; if (ad.estado !== 'Publicado') ad.estado = computeEstado(ad); touch(ad); toast('Imagem decorada aprovada e associada ao anúncio.'); refreshStaging(); refreshStep3(); } break; }
+    case 'stg-no': V.stg.descartada = V.stg.preview; V.stg.preview = null; refreshStaging(); toast('Decoração descartada. Pode desfazer ou gerar outra (conta para o limite).'); break;
+    case 'stg-undo': V.stg.preview = V.stg.descartada; V.stg.descartada = null; refreshStaging(); break;
+    case 'stg-rm': ad.decoradas = ad.decoradas.filter(d => d.id !== t.dataset.id); ad.revisado = false; if (ad.estado !== 'Publicado') ad.estado = computeEstado(ad); touch(ad); refreshStaging(); refreshStep3(); break;
+    case 'guardar': await guardar(ad); break;
+    case 'exportar': V.exp = {stage:'setup', blockers:[], confirmado:false}; go('export'); break;
+    case 'x-validate': { const b = exportBlockers(ad, ad.canaisSel, ad.legal); V.exp.blockers = b; if (b.length){ render(); toast('Exportação bloqueada: veja o que falta.'); } else { V.exp.stage='preview'; render(); } break; }
+    case 'x-back': V.exp.stage='setup'; render(); break;
+    case 'x-copy': { const c = CANAIS.find(c=>c.id===t.dataset.c); const txt = channelText(ad, c); let ok = false; try { await navigator.clipboard.writeText(txt); ok = true; } catch(e){}
+      if (ok) toast('Texto copiado.'); else await dialog({title:'Copie o texto', text:`<div class="hint">O ambiente não permitiu copiar automaticamente. Selecione e copie:</div><textarea readonly style="width:100%;min-height:160px;margin-top:8px">${esc(txt)}</textarea>`, ok:'Fechar'}); break; }
+    case 'x-imgs': await exportImages(ad); break;
+    case 'x-pdf': await exportPDF(ad); break;
+    case 'x-pub': { const c = CANAIS.find(c=>c.id===t.dataset.c); if (!ad.canaisConfirmados[c.id]){ ad.canaisConfirmados[c.id] = true; ad.exportacoes.push({data:nowISO(), canal:c.nome, resultado:'Publicação confirmada pelo agente'}); ad.estado = estadoAposCanais(ad); ad.jaPublicado = true; touch(ad); toast(`${c.nome}: publicação registada.`); }
+      else { ad.canaisConfirmados[c.id] = false; ad.exportacoes.push({data:nowISO(), canal:c.nome, resultado:'Confirmação anulada pelo agente'}); ad.estado = estadoAposCanais(ad); touch(ad); toast(`${c.nome}: confirmação anulada.`); }
+      render(); break; }
+    case 'ai-test': { V.aiStatus = 'A testar…'; render(); const t0 = performance.now(); try { await callAI('Teste de ligação', async (s, sig) => { const r = await s('Responde apenas com a palavra: pronto', {signal:sig, cache:false, modelTier:'quick'}); return r; }); V.aiStatus = `Funciona. Resposta em ${Math.round(performance.now()-t0)} ms.`; } catch(e){ V.aiStatus = `Falhou: ${errMsg(e)} Detalhe técnico: ${e.detail||e.message}`; } render(); break; }
+    case 'wipe': { const ok = await dialog({title:'Apagar todos os anúncios', text:'São removidos todos os anúncios e fotografias deste dispositivo.', ok:'Apagar tudo', cancel:'Cancelar', danger:true}); if (ok){ S.ads=[]; saveSoon(); toast('Dados apagados.'); render(); } break; }
+    case 'run-tests': V.tests = await runTests(); render(); break;
+  }
+});
+document.addEventListener('change', async ev => {
+  const t = ev.target;
+  if (t.id === 'in-cam' || t.id === 'in-gal'){ const files = [...t.files]; t.value = ''; if (files.length) await addFotos(files); }
+  else if (t.id === 'in-aud'){ const f = t.files[0]; t.value = ''; if (f) await addAudio(f); }
+  else if (t.id === 'p-rev'){ const ad = curAd(); ad.revisado = t.checked; if (ad.estado !== 'Publicado') ad.estado = computeEstado(ad); touch(ad); refreshStep3(); }
+  else if (t.dataset.rg === 'titulo' || t.dataset.rg === 'descricao'){ V.regen.alvo[t.dataset.rg] = t.checked; }
+  else if (t.dataset.stg === 'estilo'){ V.stg.estilo = t.value; V.stg.preview = null; refreshStaging(); }
+  else if (t.id === 'x-confirm'){ V.exp.confirmado = t.checked; render(); }
+  else if (t.dataset.canal){ const ad = curAd(); const id = t.dataset.canal; ad.canaisSel = t.checked ? [...new Set([...ad.canaisSel, id])] : ad.canaisSel.filter(x=>x!==id); touch(ad); }
+  else if (t.dataset.legal){ const ad = curAd(); ad.legal[t.dataset.legal] = t.value; touch(ad); }
+  else if (t.dataset.legalCheck){ const ad = curAd(); ad.legal.isento = t.checked; touch(ad); render(); }
+});
+document.addEventListener('input', ev => {
+  const t = ev.target; if (t.dataset && t.dataset.stg === 'extra'){ V.stg.extra = t.value; return; }
+  if (t.dataset && t.dataset.rg === 'instr'){ V.regen = V.regen || {alvo:{titulo:true,descricao:true}}; V.regen.instr = t.value; return; }
+  if (t.dataset && t.dataset.dedit){ const ad0 = curAd(); const d0 = ad0 && ad0.discrepancias.find(x => x.id === t.dataset.dedit); if (d0){ d0.edicao = t.value; } return; }
+  if (!t.dataset || !t.dataset.bind) return;
+  const ad = curAd(); if (!ad) return;
+  ad[t.dataset.bind] = t.value;
+  if (t.dataset.edit){ ad.versaoAnterior = null; if (ad.gerado){ markEdited(ad); if (ad.discrepancias.length === 0 || true){ /* RN09 */ } } if (V.step === 3) refreshStep3(); }
+  if (t.dataset.price){ ad.precoNota = ad.precoNota; ad.estado = ad.estado==='Publicado' ? 'Publicado' : computeEstado(ad); if (V.step === 3) refreshStep3(); }
+  if (['tipologia','area','localizacao'].includes(t.dataset.bind)){ if (V.formErr){ delete V.formErr[t.dataset.bind]; } }
+  if (t.dataset.bind === 'notas' && !ad.gerado){ ad.confNotas = null; }
+  if (ad.gerado && t.dataset.bind === 'notas'){ markEdited(ad); if (V.step === 3) refreshStep3(); }
+  touch(ad);
+});
+function featChanged(ad){ ad.confNotas = null; ad.coerenciaVerificada = false; if (ad.gerado) markEdited(ad); touch(ad); render(); }
+function applyDisc(ad, d, novo){
+  const before = { titulo: ad.titulo, descricao: ad.descricao, notas: ad.notas };
+  applyReplace(ad, d.trecho, novo); applyReplaceNotes(ad, d.trechoNotas, novo);
+  d.snap = { before, after: { titulo: ad.titulo, descricao: ad.descricao, notas: ad.notas } };
+}
+function rerenderDisc(ad){ if (V.step === 3) refreshStep3(); else render(); }
+function discChanged(ad){
+  ad.revisado = false;
+  if (ad.gerado && (ad.discrepancias||[]).every(d => d.decisao)) ad.coerenciaVerificada = true;
+  ad.estado = computeEstado(ad);
+  touch(ad); render();
+}
+function applyReplaceNotes(ad, trecho, sugestao){
+  if (!trecho) return;
+  const re = new RegExp(trecho.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'i');
+  ad.notas = String(ad.notas||'').replace(re, () => sugestao || '').replace(/[ \t]{2,}/g,' ').replace(/\s+([.,;])/g,'$1').replace(/\b(com|e|ou|de|em)\s+e\b/gi,(m,x)=>x).replace(/,\s*,/g,',').replace(/\be\s*([.,;])/g,'$1').replace(/\bcom\s*([.,;])/gi,'$1');
+}
+function applyReplace(ad, trecho, sugestao){
+  if (!trecho) return;
+  const re = new RegExp(trecho.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'i');
+  const fix = s => String(s||'').replace(re, () => sugestao || '').replace(/\s{2,}/g,' ').replace(/\s+([.,;])/g,'$1').replace(/^[\s,;]+/,'').trim();
+  const tidy = x => x.replace(/[ \t]{2,}/g,' ').replace(/\s+([.,;])/g,'$1').replace(/\b(com|e|ou|de|em|,)\s+e\b/gi,(m,a)=>a).replace(/,\s*,/g,',').replace(/\be\s*([.,;])/g,'$1').replace(/\bcom\s*([.,;])/gi,'$1').replace(/^\s*e\s+/i,'');
+  ad.titulo = fix(ad.titulo) || ad.titulo; ad.descricao = tidy(String(ad.descricao||'').replace(re, () => sugestao || ''));
+}
+async function conferirNotas(ad){
+  showLoading('A conferir as notas com as fotografias…');
+  const assumidas = new Set((ad.discrepancias||[]).filter(d => d.decisao === 'descartada').map(d => d.afirmacao.toLowerCase()));
+  const antes = { titulo: ad.titulo, descricao: ad.descricao }; ad.titulo = ''; ad.descricao = '';
+  try { if (!online()) throw new AIError('rede','offline'); ad.discrepancias = await aiCoherence(ad); }
+  catch(e){ ad.discrepancias = localCoherence(ad); toast('Conferência em modo local: a IA não respondeu.'); }
+  ad.titulo = antes.titulo; ad.descricao = antes.descricao;
+  ad.discrepancias.forEach(d => { if (assumidas.has(d.afirmacao.toLowerCase())) d.decisao = 'descartada'; });
+  ad.confNotas = 'ok'; touch(ad); hideLoading();
+}
+async function conferirEGerar(ad){
+  const precisa = ad.fotos.length && String(ad.notas||'').trim() && approved(ad).length;
+  if (precisa && ad.confNotas !== 'ok'){
+    await conferirNotas(ad);
+    if ((ad.discrepancias||[]).some(d => !d.decisao)){ V.step = 2; render(); const c = $('#conf-card'); if (c) c.scrollIntoView({block:'start', behavior:'smooth'}); toast('Há afirmações das notas por resolver.'); return; }
+    if ((ad.discrepancias||[]).length === 0) toast('As notas batem certo com as fotografias.');
+  }
+  if ((ad.discrepancias||[]).some(d => !d.decisao) && ad.confNotas === 'ok'){ render(); toast('Resolva primeiro as afirmações por resolver.'); return; }
+  await runGenerate(ad);
+}
+async function runGenerateOrLocal(ad){
+  if (!approved(ad).length && ad.fotos.length) { /* FA4: continuar com as notas; coerência fica Pendente */ }
+  await runGenerate(ad);
+}
+async function guardar(ad){
+  if (!ad.coerenciaVerificada && ad.fotos.length){ await runCoherence(ad); }
+  const falta = missingForConcluido(ad);
+  if (!(ad.estado === 'Publicado' && !falta.length)) ad.estado = falta.length ? 'Rascunho' : 'Concluído';
+  touch(ad); refreshStep3(); render();
+  if (falta.length) toast(`Guardado como Rascunho. Falta: ${falta.join(', ')}.`); else toast('Anúncio guardado como Concluído.');
+}
+
+/* ---------- Exportação real: imagens (zip) e PDF ---------- */
+async function saveFile(filename, data){
+  let dl = null; try { dl = window.claude && await window.claude.use('downloads'); } catch(e){}
+  if (!dl){ // fora do claude.ai: descarga normal do navegador
+    try { const blob = data instanceof Blob ? data : new Blob([data]); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000); return true; }
+    catch(e){ toast('Não foi possível descarregar o ficheiro neste ambiente.'); return false; }
+  }
+  try { await dl.save({filename, data}); return true; }
+  catch(e){ if (e && e.code === 'declined') toast('Descarga cancelada.'); else toast('Não foi possível guardar o ficheiro.'); return false; }
+}
+async function exportImages(ad){
+  if (!window.JSZip){ toast('A biblioteca de ficheiros não carregou. Verifique a ligação.'); return; }
+  const z = new JSZip(); ad.fotos.forEach((f,i) => z.file(`foto-${String(i+1).padStart(2,'0')}.jpg`, f.data.split(',')[1], {base64:true}));
+  (ad.decoradas||[]).forEach((d,i) => z.file(`imagem-decorada-virtualmente-${String(i+1).padStart(2,'0')}.jpg`, d.data.split(',')[1], {base64:true}));
+  const blob = await z.generateAsync({type:'blob'}); const ok = await saveFile('propsell-fotografias.zip', blob); if (ok) toast('Imagens guardadas.');
+}
+async function exportPDF(ad){
+  if (!window.jspdf){ toast('A biblioteca de PDF não carregou. Verifique a ligação.'); return; }
+  const { jsPDF } = window.jspdf; const doc = new jsPDF({unit:'mm', format:'a4'}); const W = 210, M = 16; let y = M;
+  const P = x => String(x ?? '').replace(/[\u00A0\u202F]/g,' ').replace(/[—–]/g,'-').replace(/…/g,'...').replace(/[“”«»]/g,'"').replace(/[‘’]/g,"'").replace(/€/g,'EUR');
+  const need = h => { if (y + h > 285){ doc.addPage(); y = M; } };
+  doc.setFont('helvetica','bold'); doc.setFontSize(18); const tl = doc.splitTextToSize(P(ad.titulo), W-2*M); doc.text(tl, M, y+6); y += tl.length*8 + 4;
+  doc.setFont('helvetica','normal'); doc.setFontSize(11);
+  const preco = parseArea(ad.preco) > 0 ? fmtEUR(parseArea(ad.preco)) : '';
+  doc.text(P(`${ad.tipologia} · ${parseArea(ad.area).toLocaleString('pt-PT')} m²${ad.localizacao?` · ${ad.localizacao}`:''}${preco?` · ${preco}`:''}`), M, y); y += 8;
+  const dl = doc.splitTextToSize(P(ad.descricao), W-2*M); dl.forEach(line => { need(6); doc.text(line, M, y); y += 5.5; }); y += 4;
+  const fe = approved(ad).map(c=>c.nome); if (fe.length){ need(12); doc.setFont('helvetica','bold'); doc.text('Características', M, y); y += 6; doc.setFont('helvetica','normal'); doc.splitTextToSize(P(fe.join(', ')), W-2*M).forEach(l=>{ need(6); doc.text(l, M, y); y += 5.5; }); y += 4; }
+  for (const f of ad.fotos){ const w = W-2*M, h = w * (f.h/f.w); const hh = Math.min(h, 120); need(hh+6); try { doc.addImage(f.data, 'JPEG', M, y, hh===h ? w : hh*(f.w/f.h), hh); } catch(e){} y += hh + 6; }
+  for (const d of (ad.decoradas||[])){ const im = await loadImage(d.data); const w = W-2*M, h = w * (im.naturalHeight/im.naturalWidth); const hh = Math.min(h, 120); need(hh+12); doc.setFontSize(9); doc.text(P('Imagem decorada virtualmente'), M, y+3); y += 6; try { doc.addImage(d.data, 'JPEG', M, y, hh===h ? w : hh*(im.naturalWidth/im.naturalHeight), hh); } catch(e){} y += hh + 6; }
+  doc.setFontSize(8); doc.text(P('Gerado pela PropSell. Conteúdo revisto pelo agente.'), M, 292);
+  const ok = await saveFile(`propsell-${(ad.tipologia||'anuncio').toLowerCase()}.pdf`, doc.output('arraybuffer'));
+  if (ok){ ad.exportacoes.push({data:nowISO(), canal:'PDF (dossiê comercial)', resultado:'PDF gerado e guardado'}); V.exp.pdfOk = true; touch(ad); toast('PDF guardado. O estado do anúncio não muda.'); render(); }
+}
+
+/* ---------- Verificação CA01–CA13 ---------- */
+async function runTests(){
+  const R = [];
+  const add = (id, d, ok, n, manual) => R.push({id, d, r: manual ? 'Por validar manualmente' : (ok ? 'Passou' : 'Falhou'), n});
+  const fx = (o) => Object.assign(newAd(), {tipologia:'T2', localizacao:'Lisboa', area:'78', fotos:[{id:'1',w:1600,h:1200,data:'x',nome:'a.jpg'}], gerado:true, titulo:'T', descricao:'D', preco:'300000', ...o});
+  const feat = (nome, decisao='aprovada') => ({id:uid(), nome, confianca:90, origem:'ia', decisao});
+  // CA01
+  { const L='Lisboa'; const a = validateForm({tipologia:'', localizacao:L, area:'78'}), b = validateForm({tipologia:'T2', localizacao:L, area:''}), c = validateForm({tipologia:'T2', localizacao:L, area:'-5'}), d = validateForm({tipologia:'qualquer coisa', localizacao:L, area:'78'}), e = validateForm({tipologia:'T2', localizacao:'', area:'78'});
+    add('CA01','Tipologia, localização ou área em falta/inválida bloqueiam; texto livre é aceite.', a.tipologia && b.area && c.area && e.localizacao && !Object.keys(d).length); }
+  // CA02
+  { const p1 = imageProblem({formato:'GIF',bytes:1000,w:1200,h:900}), p2 = imageProblem({formato:'JPEG',bytes:20*1048576,w:4000,h:3000}) === null ? 'foto grande aceite' : 'ERRO', p3 = imageProblem({formato:'PNG',bytes:1000,w:400,h:300}), p4 = imageProblem({formato:'DESCONHECIDO',bytes:50,w:0,h:0}), ok = imageProblem({formato:'JPEG',bytes:1000,w:1600,h:1200});
+    const a1 = audioProblem({formato:'FLAC',dur:5,bytes:1000}), a2 = audioProblem({formato:'MP3',dur:330,bytes:1000}), a3 = audioProblem({formato:'M4A',dur:136,bytes:1000});
+    add('CA02','Fotografias e áudios inválidos são recusados com o motivo; os válidos (incluindo fotos grandes e M4A) passam.', p1&&p2==='foto grande aceite'&&p3&&p4&&!ok&&a1&&a2&&!a3, [p1,p2,p3,p4,a1,a2].join(' | ')); }
+  // CA03
+  { const v = visibleFeatures([{nome:'a',confianca:92},{nome:'b',confianca:74},{nome:'c',confianca:75}]);
+    add('CA03','Só aparecem características com 75% ou mais.', v.length===2 && v.every(x=>x.confianca>=75), 'A extração real depende da IA: confirme com fotografias reais.'); R[R.length-1].r = R[R.length-1].r === 'Passou' ? 'Passou' : 'Falhou'; }
+  // CA04
+  { const a = fx({caracteristicas:[feat('piso em madeira'), feat('piscina','rejeitada')], notas:''}); const g = localGenerate(a);
+    add('CA04','O texto só refere características aprovadas (rejeitadas não aparecem).', /piso em madeira/.test(g.descricao) && !/piscina/.test(g.descricao), 'Com a IA real, valide manualmente que o texto não acrescenta nada.'); }
+  // CA05
+  { const a = fx({caracteristicas:[feat('luz natural')], notas:'T2 com varanda e cozinha equipada', descricao:'T2 com varanda e cozinha equipada.'}); a.discrepancias = localCoherence(a); a.coerenciaVerificada = true; a.revisado = true; a.estado = computeEstado(a);
+    add('CA05','Afirmação sem suporte → coerência Pendente, Rascunho e exportação bloqueada.', a.discrepancias.length>=2 && coherenceOf(a)==='Pendente' && a.estado==='Rascunho' && exportBlockers(a,['idealista'],{certificado:'B',licenca:'1'}).length>0); }
+  // CA06
+  { const a = fx({caracteristicas:[feat('luz natural')], notas:'varanda', descricao:'Com varanda.'}); a.discrepancias = localCoherence(a); a.coerenciaVerificada = true; a.discrepancias.forEach(d=>d.decisao='descartada');
+    add('CA06','Resolvidas todas as discrepâncias, a coerência passa a Validada.', coherenceOf(a)==='Validada'); }
+  // CA07
+  { const a = fx({fotos:[], caracteristicas:[]}); a.coerenciaVerificada = true; a.revisado = true; a.estado = computeEstado(a);
+    add('CA07','Sem fotografias: Não aplicável, Rascunho e exportação indisponível.', coherenceOf(a)==='Não aplicável' && a.estado==='Rascunho' && exportBlockers(a,['pdf'],{}).length>0); }
+  // CA08
+  { const a = fx({caracteristicas:[feat('luz natural')]}); a.coerenciaVerificada = true; a.revisado = false; const antes = computeEstado(a); a.revisado = true; const depois = computeEstado(a);
+    add('CA08','Só passa a Concluído com «Revi o anúncio» e coerência Validada.', antes==='Rascunho' && depois==='Concluído'); }
+  // CA09
+  { const a = fx({caracteristicas:[feat('luz natural')]}); a.coerenciaVerificada = true; a.revisado = true; a.estado = 'Concluído'; markEdited(a);
+    add('CA09','Editar um anúncio Concluído repete a coerência e devolve-o a Rascunho.', a.estado==='Rascunho' && a.coerenciaVerificada===false && !a.revisado); }
+  // CA10
+  { const a = fx({caracteristicas:[feat('luz natural')], estado:'Concluído', legal:{certificado:'B',licenca:'123',isento:false}}); a.coerenciaVerificada = true; a.revisado = true;
+    const antes = a.estado; a.canaisConfirmados = {}; const sem = estadoAposCanais(a); a.canaisConfirmados = {idealista:true}; const com = estadoAposCanais(a);
+    add('CA10','Só a confirmação expressa do canal passa o anúncio a Publicado.', antes==='Concluído' && sem==='Concluído' && com==='Publicado', 'A caixa «Revi esta pré-visualização» desbloqueia os botões de cada canal (verifique no ecrã).'); }
+  // CA11
+  { const a = fx({caracteristicas:[feat('luz natural')], estado:'Concluído'}); a.coerenciaVerificada = true; a.revisado = true;
+    const b = exportBlockers(a, ['idealista'], {certificado:'', licenca:'1'});
+    add('CA11','Sem certificado energético a exportação para portais é bloqueada e indica o campo.', b.some(x=>/certificado/i.test(x))); }
+  // CA12
+  { const a = fx({caracteristicas:[feat('luz natural')], estado:'Concluído'}); a.coerenciaVerificada = true; a.revisado = true; a.canaisConfirmados = {idealista:false, instagram:true, pdf:true};
+    add('CA12','Se um canal não é confirmado, os outros mantêm-se e o estado passa a Publicado.', estadoAposCanais(a)==='Publicado'); }
+  // VS (UC-01 FA3)
+  { const a = fx({}); const ok1 = canStage(a).ok; a.stagingTentativas = STG_MAX_TENT; const lim1 = canStage(a); a.stagingTentativas = 0; a.decoradas = Array.from({length:STG_MAX_DECORADAS}, ()=>({})); const lim2 = canStage(a); const sem = canStage(fx({fotos:[]}));
+    add('VS','Virtual Staging respeita os limites de tentativas e de imagens decoradas e exige fotografias (RN05).', ok1 && !lim1.ok && !lim2.ok && !sem.ok, 'A etiqueta «Imagem decorada virtualmente» gravada na imagem e a aprovação ou descarte validam-se no ecrã.'); }
+  // FA5
+  { const a = fx({caracteristicas:[feat('luz natural')], titulo:'Antigo', descricao:'Texto antigo.'}); a.coerenciaVerificada = true; a.revisado = true; a.estado = 'Concluído';
+    applyRegeneracao(a, {titulo:'Novo', descricao:'Texto novo.', discrepancias:[]}, {titulo:false, descricao:true});
+    add('FA5','Aceitar a nova versão substitui só o campo escolhido, devolve a Rascunho e exige nova revisão.', a.titulo==='Antigo' && a.descricao==='Texto novo.' && a.estado==='Rascunho' && !a.revisado, 'A comparação lado a lado e o descarte da nova versão validam-se no ecrã.'); }
+  // Reversibilidade
+  { const a = fx({caracteristicas:[feat('luz natural')], titulo:'Antigo', descricao:'Texto antigo.'}); a.coerenciaVerificada = true; a.revisado = true; a.estado = 'Concluído';
+    applyRegeneracao(a, {titulo:'Novo', descricao:'Texto novo.', discrepancias:[]}, {titulo:true, descricao:true}); const v = a.versaoAnterior;
+    add('REV','Cada decisão tem forma de ser desfeita (coerência, staging, regeneração, canais).', !!v && v.titulo==='Antigo' && v.descricao==='Texto antigo.', 'A reabertura de cada decisão valida-se no ecrã.'); }
+  // CA13
+  { const a = fx({}); const r1 = failureOutcome(a,'timeout'), r2 = failureOutcome(a,'rede');
+    add('CA13','Falha ou timeout da IA: Rascunho, mensagem e opções «Escrever manualmente» e «Tentar de novo», sem perder dados.', r1.estado==='Rascunho' && r1.opcoes.length===2 && /demorou/.test(r1.mensagem) && /contactar/.test(r2.mensagem) && !r1.dadosPerdidos, 'O tempo limite real de 15 s e a fila sem rede validam-se no ecrã (modo avião).'); }
+  return R;
+}
+
+/* ---------- Arranque ---------- */
+(async function init(){
+  $('#root').innerHTML = '<div style="padding:40px;text-align:center" class="hint">A abrir…</div>';
+  await loadState();
+  S.ads.forEach(a => { if (a.fila && online()) { /* será processado pelo evento online ou ao abrir */ } });
+  render();
+  getSample();
+})();
+</script>
+</body>
+</html>
